@@ -15,37 +15,40 @@ static lwbtn_btn_t btns[] = {{.arg = (void*)&keys[0]}, {.arg = (void*)&keys[1]},
                              {.arg = (void*)&keys[6]}, {.arg = (void*)&keys[7]}, {.arg = (void*)&keys[8]},
                              {.arg = (void*)&keys[9]}};
 
+/**
+ * \brief           Get input state callback 
+ * \param           lw: LwBTN instance
+ * \param           btn: Button instance
+ * \return          `1` if button active, `0` otherwise
+ */
 uint8_t
 prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
+    (void)lw;
     return GetAsyncKeyState(*(int*)btn->arg) < 0;
 }
 
+/**
+ * \brief           Button event
+ * 
+ * \param           lw: LwBTN instance
+ * \param           btn: Button instance
+ * \param           evt: Button event
+ */
 void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
+    const char* s = "unknown";
     (void)lw;
-    printf("[%7u] State !!!. CH: %c, evt: ", (unsigned)get_tick(), *(int*)btn->arg);
-    switch (evt) {
-        case LWBTN_EVT_KEEPALIVE: {
-            printf("KEEPALIVE");
-            break;
-        }
-        case LWBTN_EVT_ONPRESS: {
-            printf("ONPRESS");
-            break;
-        }
-        case LWBTN_EVT_ONRELEASE: {
-            printf("ONRELEASE");
-            break;
-        }
-        case LWBTN_EVT_ONCLICK: {
-            printf("ONCLICK");
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    printf("\r\n");
+
+    /* Get event string */
+    s = ((evt == LWBTN_EVT_KEEPALIVE)
+             ? "KEEPALIVE"
+             : ((evt == LWBTN_EVT_ONPRESS)
+                    ? "  ONPRESS"
+                    : ((evt == LWBTN_EVT_ONRELEASE) ? "ONRELEASE"
+                                                    : ((evt == LWBTN_EVT_ONCLICK) ? "  ONCLICK" : "  UNKNOWN"))));
+
+    printf("[%7u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(), *(int*)btn->arg, s,
+           (unsigned)btn->keepalive.cnt, (unsigned)btn->click.cnt);
 }
 
 int
@@ -54,14 +57,22 @@ main(void) {
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&sys_start_time);
 
+    /* Define buttons */
     lwbtn_init_ex(NULL, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
 
     while (1) {
+        /* Process forever */
         lwbtn_process_ex(NULL, get_tick());
-        Sleep(10);
+
+        /* Artificial sleep to offload win process */
+        Sleep(5);
     }
 }
 
+/**
+ * \brief           Get current tick in ms from start of program
+ * \return          uint32_t: Tick in ms
+ */
 static uint32_t
 get_tick(void) {
     LONGLONG ret;

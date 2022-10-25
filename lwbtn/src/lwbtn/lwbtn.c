@@ -112,12 +112,12 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                          * Increase consecutive clicks if max not reached yet
                          * and if time between two clicks is not too long
                          */
-                        if (b->click.consecutive_cnt > 0 && b->click.consecutive_cnt < LWBTN_CLICK_MAX_CONSECUTIVE(b)
+                        if (b->click.cnt > 0 && b->click.cnt < LWBTN_CLICK_MAX_CONSECUTIVE(b)
                             && (mstime - b->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(b)) {
-                            ++b->click.consecutive_cnt;
+                            ++b->click.cnt;
                         } else {
                             /* Start over - set as first click */
-                            b->click.consecutive_cnt = 1;
+                            b->click.cnt = 1;
                         }
                         b->click.last_time = mstime;
                     } else {
@@ -130,7 +130,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                          * 
                          * Clear then counter
                          */
-                        b->click.consecutive_cnt = 0;
+                        b->click.cnt = 0;
                     }
                 }
             }
@@ -164,9 +164,9 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                      * 
                      * Handle this on on-press state
                      */
-                    if (b->click.consecutive_cnt > 0 && b->click.consecutive_cnt == LWBTN_CLICK_MAX_CONSECUTIVE(b)) {
+                    if (b->click.cnt > 0 && b->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(b)) {
                         lw->evt_fn(lw, b, LWBTN_EVT_ONCLICK);
-                        b->click.consecutive_cnt = 0;
+                        b->click.cnt = 0;
                     }
 
                     /* Now start with new on-press */
@@ -202,10 +202,10 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              *      This is sent after last valid click has been detected for OnRelease event
              * - Reset consecutive clicks counter if time after last click is longer than maximum one
              */
-            if (b->click.consecutive_cnt > 0) {
+            if (b->click.cnt > 0) {
                 if ((mstime - b->click.last_time) >= LWBTN_TIME_CLICK_SEND_TIMEOUT(b)) {
                     lw->evt_fn(lw, b, LWBTN_EVT_ONCLICK);
-                    b->click.consecutive_cnt = 0;
+                    b->click.cnt = 0;
                 }
             }
         }

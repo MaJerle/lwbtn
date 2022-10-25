@@ -74,43 +74,74 @@ typedef enum {
     LWBTN_EVT_KEEPALIVE,
 } lwbtn_evt_t;
 
+/**
+ * \brief           Button event function callback prototype
+ * \param[in]       lw: LwBTN instance
+ * \param[in]       btn: Button instance from array for which event occured
+ * \param[in]       evt: Event type
+ */
 typedef void (*lwbtn_evt_fn)(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt);
+
+/**
+ * \brief           Get button/input state callback function
+ * \param[in]       lw: LwBTN instance
+ * \param[in]       btn: Button instance from array to read state
+ * \return          `1` when button is considered `active`, `0` otherwise
+ */
 typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lw, struct lwbtn_btn* btn);
 
 /**
  * \brief           Button/input structure
  */
 typedef struct lwbtn_btn {
-    uint16_t flags;
-    uint8_t old_state;
-    uint32_t time_change;
+    uint16_t flags;       /*!< Private button flags management */
+    uint8_t old_state;    /*!< Old button state - `1` means active, `0` means inactive */
+    uint32_t time_change; /*!< Time in ms when button state got changed last time */
 
     struct {
-        uint32_t last_time;
-        uint16_t cnt;
-    } keepalive;
+        uint32_t last_time; /*!< Time in ms of last send keep alive event */
+        uint16_t cnt;       /*!< Number of keep alive events sent after successful on-press detection.
+                                    Value is reset after on-release */
+    } keepalive;            /*!< Keep alive structure */
 
     struct {
-        uint32_t last_time;
-        uint8_t consecutive_cnt;
-    } click;
+        uint32_t last_time; /*!< Time in ms of last successfully detected (not sent!) click event */
+        uint8_t cnt;        /*!< Number of consecutive clicks detected, respecting maximum timeout between clicks */
+    } click;                /*!< Click event structure */
 
-    void* arg;
+    void* arg; /*!< User defined custom argument for callback function purpose */
 } lwbtn_btn_t;
 
 /**
  * \brief           LwBTN group structure
  */
 typedef struct lwbtn {
-    lwbtn_btn_t* btns;
-    uint16_t btns_cnt;
-    lwbtn_evt_fn evt_fn;
-    lwbtn_get_state_fn get_state_fn;
+    lwbtn_btn_t* btns;               /*!< Pointer to buttons array */
+    uint16_t btns_cnt;               /*!< Number of buttons in array */
+    lwbtn_evt_fn evt_fn;             /*!< Pointer to event function */
+    lwbtn_get_state_fn get_state_fn; /*!< Pointer to get state function */
 } lwbtn_t;
 
 uint8_t lwbtn_init_ex(lwbtn_t* lw, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,
                       lwbtn_evt_fn evt_fn);
 uint8_t lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime);
+
+/**
+ * \brief           Initialize LwBTN library with buttons on default button group
+ * \param[in]       btns: Array of buttons to process
+ * \param[in]       btns_cnt: Number of buttons to process
+ * \param[in]       get_state_fn: Pointer to function providing button state on demand
+ * \param[in]       evt_fn: Button event function callback
+ * \sa              lwbtn_init_ex
+ */
+#define lwbtn_init(btns, btns_cnt, get_state_fn, evt_fn) lwbtn_init_ex(NULL, btns, btns_cnt, get_state_fn, evt_fn)
+
+/**
+ * \brief           Periodically read button states and take appropriate actions
+ * \param[in]       mstime: Current system time in milliseconds
+ * \sa              lwbtn_process_ex
+ */
+#define lwbtn_process(mstime)                            lwbtn_process_ex(NULL, mstime)
 
 /**
  * \}
