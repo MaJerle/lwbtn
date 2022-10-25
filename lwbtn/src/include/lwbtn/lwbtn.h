@@ -49,10 +49,13 @@ extern "C" {
  */
 
 /**
- * \brief           User argument data structure
+ * \brief           Custom user argument data structure
  * 
- * This is structure user can use to define
- * GPIO port, pin and potential active state (high or low)
+ * This is a simple pre-defined structure, that can be used by user
+ * to define most commonly required feature in embedded systems, that being
+ * GPIO port, GPIO pin and state when button is considered active.
+ * 
+ * User can later attach this structure as argument to button structure
  */
 typedef struct {
     void* port;    /*!< User defined GPIO port information */
@@ -60,6 +63,7 @@ typedef struct {
     uint8_t state; /*!< User defined GPIO state level when considered active */
 } lwbtn_argdata_port_pin_state_t;
 
+/* Forward declarations */
 struct lwbtn_btn;
 struct lwbtn;
 
@@ -68,10 +72,10 @@ struct lwbtn;
  * 
  */
 typedef enum {
-    LWBTN_EVT_ONPRESS = 0x00,
-    LWBTN_EVT_ONRELEASE,
-    LWBTN_EVT_ONCLICK,
-    LWBTN_EVT_KEEPALIVE,
+    LWBTN_EVT_ONPRESS = 0x00, /*!< On press event - sent when valid press is detected (after debounce if enabled) */
+    LWBTN_EVT_ONRELEASE, /*!< On release event - sent when valid release event is detected (from active to inactive) */
+    LWBTN_EVT_ONCLICK,   /*!< On Click event - sent when valid sequence of on-press and on-release events occurs */
+    LWBTN_EVT_KEEPALIVE, /*!< Keep alive event - sent periodically when button is active */
 } lwbtn_evt_t;
 
 /**

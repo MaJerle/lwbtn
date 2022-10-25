@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="166px" height="56px" viewBox="-0.5 -0.5 166 56" content="&lt;mxfile modified=&quot;2020-12-05T00:28:42.402Z&quot; host=&quot;Electron&quot; agent=&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/12.3.2 Chrome/78.0.3904.113 Electron/7.1.2 Safari/537.36&quot; etag=&quot;x-we_KnahCv0UhIJDCT8&quot; version=&quot;12.3.2&quot; type=&quot;device&quot; pages=&quot;1&quot;&gt;&lt;diagram id=&quot;I-N_G4gh3ujyhIfbbh0O&quot; name=&quot;Page-1&quot;&gt;jZLdTsMwDIWfppeT2mYbcAljDNiQkAaaxF3UeE1EWldZRjqenpQ6/dmExFXiz46TnOOILYp6ZXglX1CAjtJY1BG7j9I0ia+mfmnIqSU3s1kLcqMEFfVgq76hhaHqqAQcRnUWUVtVjWGGZQmZHTFuDLpx2R71+NKK53ABthnXl3SnhJUtvZ7FPX8ElctwcxJTpuChmMBBcoFu0JUtI7YwiLbdFfUCdKNdkKU99/BHtnuYgdL+58B++pHgc7Fa794rsXmq1rcTN6EuX1wf6cMb97p+oxfbU5DB4LEU0HRKInbnpLKwrXjWZJ333TNpC03pgzX42ck192SPpSVrWRN3WsQ+uPxIeBUYC/W5Yn7SAAuw5uRLKMumNC40ZGmIXe9ZMicj5MCv4COnMcm71r2SfkNihrA37Tc3mHy2/AE=&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <defs/>
+    <g>
+        <rect x="3" y="3" width="160" height="50" rx="7.5" ry="7.5" fill="#ffffff" stroke="#000000" stroke-width="6" pointer-events="all"/>
+        <g transform="translate(24.5,6.5)">
+            <switch>
+                <foreignObject style="overflow:visible;" pointer-events="all" width="116" height="41" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; font-size: 36px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 117px; white-space: nowrap; overflow-wrap: normal; text-align: center;">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="display:inline-block;text-align:inherit;text-decoration:inherit;white-space:normal;">LwBTN</div>
+                    </div>
+                </foreignObject>
+                <text x="58" y="39" fill="#000000" text-anchor="middle" font-size="36px" font-family="Helvetica">LwEVT</text>
+            </switch>
+        </g>
+    </g>
+</svg>
