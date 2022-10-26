@@ -62,7 +62,7 @@ Onclick event is triggered after a combination of multiple events:
 - **Onrelease** event shall be detected, indicating button has been released
 - Time between **onpress** and **onrelease** events has to be within time window
 
-When conditions are met, **onclick** event is normally set after certain timeout.
+When conditions are met, **onclick** event is normally set after timeout from last **onrelease** event.
 
 .. figure:: ../static/images/btn-events-click.svg
     :align: center
@@ -72,11 +72,12 @@ When conditions are met, **onclick** event is normally set after certain timeout
 
 .. note::
     Adding a timeout feature, allows application handle **multi-onclick** events, a feature that is explained in next chapter.
+    When timeout is reached and if there was no new input event detected, **onclick** is sent and its number of presses is reset back to ``0``.
 
 Multi-click events
 ^^^^^^^^^^^^^^^^^^
 
-Simplified diagram, ignoring debounce time indicators, is below.
+Simplified diagram for multi-click, ignoring debounce time indicators, is below.
 **cp** indicates number of detected **consecutive onclick press** events, to be reported in the final **onclick** event
 
 .. figure:: ../static/images/btn-events-click-multi.svg
@@ -85,11 +86,30 @@ Simplified diagram, ignoring debounce time indicators, is below.
 
     Multi-click event example - with 3 consecutive presses
 
+Number of consecutive clicks can be upper-limited to the desired value.
+When user makes more consecutive clicks than maximum, an **onclick** event is sent immediately after **onrelease** event for last detected click.
+This is well illustrated in the picture below, showing event sequence when:
+
+* Max number of consecutive clicks is ``3``
+* User makes ``4`` consecutive clicks
+
 .. figure:: ../static/images/btn-events-click-multi-over.svg
     :align: center
     :alt: Multi-click events with too many clicks
 
     Multi-click events with too many clicks
+
+When **multi-click** feature is disabled, **onclick** event is sent after every valid sequence of **onpress** and **onrelease** events.
+
+.. tip::
+    If you do not want multi-click feature, set max number of consecutive clicks to ``1``. This will eliminate timeout feature since
+    every click event will trigger **maximum clicks detected** and therefore send the event immediately after **onrelease**
+
+.. figure:: ../static/images/btn-events-click-multi-disabled.svg
+    :align: center
+    :alt: Multi-click events disabled with cp == 1
+
+    Multi-click events disabled with cp == 1
 
 Keep alive events
 ^^^^^^^^^^^^^^^^^
