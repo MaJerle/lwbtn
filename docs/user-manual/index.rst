@@ -62,7 +62,7 @@ Onclick event is triggered after a combination of multiple events:
 - **Onrelease** event shall be detected, indicating button has been released
 - Time between **onpress** and **onrelease** events has to be within time window
 
-When conditions are met, **onclick** event is normally set after timeout from last **onrelease** event.
+When conditions are met, **onclick** event is sent, either immediately after **onrelease** or after certain timeout after **onrelease** event.
 
 .. figure:: ../static/images/btn-events-click.svg
     :align: center
@@ -70,12 +70,18 @@ When conditions are met, **onclick** event is normally set after timeout from la
 
     Sequence for valid click event
 
-.. note::
-    Adding a timeout feature, allows application handle **multi-onclick** events, a feature that is explained in next chapter.
-    When timeout is reached and if there was no new input event detected, **onclick** is sent and its number of presses is reset back to ``0``.
-
 Multi-click events
 ^^^^^^^^^^^^^^^^^^
+
+Multi-click feature is where **timeout** for **Onclick** comes into play.
+Idea behind timeout feature is to allow multiple presses and only send **onclick** once for all presses,
+including the number of detected presses during that time. This let's application to react only
+once with known number of presses. This eliminates the problem where in case of **double** click trigger, you also receive **single-click** event.
+
+.. note::
+    Imagine having a button that toggles one light on single click and turns off all lights in a room on double click.
+    With timeout feature and single **onclick** notification, user will only receive the **onclick** once and will,
+    based on the consecutive presses number value, perform appropriate action if it was single or multi click.
 
 Simplified diagram for multi-click, ignoring debounce time indicators, is below.
 **cp** indicates number of detected **consecutive onclick press** events, to be reported in the final **onclick** event
@@ -87,8 +93,9 @@ Simplified diagram for multi-click, ignoring debounce time indicators, is below.
     Multi-click event example - with 3 consecutive presses
 
 Number of consecutive clicks can be upper-limited to the desired value.
-When user makes more consecutive clicks than maximum, an **onclick** event is sent immediately after **onrelease** event for last detected click.
-This is well illustrated in the picture below, showing event sequence when:
+When user makes more (or equal) consecutive clicks than maximum, an **onclick** event is sent immediately after **onrelease** event for last detected click.
+There is no need to wait timeout expiration since upper clicks limit has been reached. 
+This is illustrated in the picture below, showing event sequence when:
 
 * Max number of consecutive clicks is ``3``
 * User makes ``4`` consecutive clicks
@@ -111,5 +118,16 @@ When **multi-click** feature is disabled, **onclick** event is sent after every 
 
     Multi-click events disabled with cp == 1
 
-Keep alive events
-^^^^^^^^^^^^^^^^^
+Keep alive event
+^^^^^^^^^^^^^^^^
+
+**Keep-alive** event is sent periodically between **onpress** and **onrelease** events.
+It can be used to detect application is still alive and provides counter how many keep-alive events have been sent up to the point of event.
+
+Feature can be used to make a trigger at specific time if button is in active state (a hold event).
+
+.. figure:: ../static/images/btn-events-keep-alive.svg
+    :align: center
+    :alt: Keep alive events with 2 successful click events
+
+    Keep alive events with 2 successful click events
