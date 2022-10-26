@@ -88,21 +88,21 @@ lwbtn_init_ex(lwbtn_t* lw, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state
  */
 uint8_t
 lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
-    lwbtn_btn_t* b;
-    uint8_t new_state;
+    lwbtn_btn_t* btn = NULL;
+    uint8_t new_state = 0;
 
     lw = LWBTN_GET_LW(lw);
 
     /* Process all buttons */
-    for (size_t i = 0; i < lw->btns_cnt; ++i) {
-        b = &lw->btns[i];
+    for (size_t index = 0; index < lw->btns_cnt; ++index) {
+        btn = &lw->btns[index];
 
-        new_state = lw->get_state_fn(lw, b); /* Get button state */
+        new_state = lw->get_state_fn(lw, btn); /* Get button state */
 
         /*
          * Button state has changed
          */
-        if (new_state != b->old_state) {
+        if (new_state != btn->old_state) {
             /*
              * Button just became inactive
              *
@@ -115,14 +115,14 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                  *
                  * Do nothing if that was not the case
                  */
-                if (b->flags & LWBTN_FLAG_ONPRESS_SENT) {
+                if (btn->flags & LWBTN_FLAG_ONPRESS_SENT) {
                     /* Handle on-release event */
-                    b->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
-                    lw->evt_fn(lw, b, LWBTN_EVT_ONRELEASE);
+                    btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
+                    lw->evt_fn(lw, btn, LWBTN_EVT_ONRELEASE);
 
                     /* Check time validity for click event */
-                    if ((mstime - b->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(b)
-                        && (mstime - b->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(b)) {
+                    if ((mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(b)
+                        && (mstime - btn->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(b)) {
 
                         /*
                          * Increase consecutive clicks if max not reached yet
@@ -130,13 +130,13 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                          * 
                          * Otherwise we consider click as fresh one
                          */
-                        if (b->click.cnt > 0 && b->click.cnt < LWBTN_CLICK_MAX_CONSECUTIVE(b)
-                            && (mstime - b->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(b)) {
-                            ++b->click.cnt;
+                        if (btn->click.cnt > 0 && btn->click.cnt < LWBTN_CLICK_MAX_CONSECUTIVE(b)
+                            && (mstime - btn->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(b)) {
+                            ++btn->click.cnt;
                         } else {
-                            b->click.cnt = 1;
+                            btn->click.cnt = 1;
                         }
-                        b->click.last_time = mstime;
+                        btn->click.last_time = mstime;
                     } else {
                         /*
                          * There was an on-release event, but timing
@@ -155,9 +155,9 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
             else {
                 /* Do nothing - things are handled after debounce period */
             }
-            b->time_change = mstime;
-            b->keepalive.last_time = mstime;
-            b->keepalive.cnt = 0;
+            btn->time_change = mstime;
+            btn->keepalive.last_time = mstime;
+            btn->keepalive.cnt = 0;
         }
 
         /*
@@ -169,26 +169,26 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              *
              * This is when we detect valid press
              */
-            if (!(b->flags & LWBTN_FLAG_ONPRESS_SENT)) {
+            if (!(btn->flags & LWBTN_FLAG_ONPRESS_SENT)) {
                 /* Check minimum stable time */
-                if ((mstime - b->time_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(b)) {
+                if ((mstime - btn->time_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(b)) {
                     /*
                      * Immediately send click event if number of 
                      * previous consecutive clicks reached maximum level.
                      * 
                      * Handle this before sending on-press state
                      */
-                    if (b->click.cnt > 0 && b->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(b)) {
-                        lw->evt_fn(lw, b, LWBTN_EVT_ONCLICK);
-                        b->click.cnt = 0;
+                    if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(b)) {
+                        lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
+                        btn->click.cnt = 0;
                     }
 
                     /* Now start with new on-press */
-                    b->flags |= LWBTN_FLAG_ONPRESS_SENT;
-                    lw->evt_fn(lw, b, LWBTN_EVT_ONPRESS);
+                    btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
+                    lw->evt_fn(lw, btn, LWBTN_EVT_ONPRESS);
 
                     /* Set keep alive time */
-                    b->keepalive.last_time = mstime;
+                    btn->keepalive.last_time = mstime;
                 }
             }
             /*
@@ -197,10 +197,10 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              * Keep alive is sent when valid press is being detected
              */
             else {
-                if ((mstime - b->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(b)) {
-                    b->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(b);
-                    ++b->keepalive.cnt;
-                    lw->evt_fn(lw, b, LWBTN_EVT_KEEPALIVE);
+                if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(b)) {
+                    btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(b);
+                    ++btn->keepalive.cnt;
+                    lw->evt_fn(lw, btn, LWBTN_EVT_KEEPALIVE);
                 }
             }
         }
@@ -218,14 +218,14 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              * and will process the onclick event to user, unless there is another click in the meantime,
              * that will force the timing to postpone event generation
              */
-            if (b->click.cnt > 0) {
-                if ((mstime - b->click.last_time) >= LWBTN_TIME_CLICK_SEND_TIMEOUT(b)) {
-                    lw->evt_fn(lw, b, LWBTN_EVT_ONCLICK);
-                    b->click.cnt = 0;
+            if (btn->click.cnt > 0) {
+                if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_SEND_TIMEOUT(b)) {
+                    lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
+                    btn->click.cnt = 0;
                 }
             }
         }
-        b->old_state = new_state;
+        btn->old_state = new_state;
     }
     return 1;
 }
