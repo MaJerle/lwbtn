@@ -53,6 +53,62 @@ extern "C" {
  */
 
 /**
+ * \brief           Minimum debounce time in units of milliseconds
+ * 
+ * This is the time input shall have stable level to detect valid *onpress* event
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE
+#define LWBTN_CFG_TIME_DEBOUNCE 20
+#endif
+
+/**
+ * \brief           Minimum active input time for valid click event, in milliseconds
+ * 
+ * Input shall be pressed at least this amount of time to even consider the potential valid click event.
+ * Set the value to `0` to disable this feature
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MIN
+#define LWBTN_CFG_TIME_CLICK_MIN 20
+#endif
+
+/**
+ * \brief           Maximum active input time for valid click event, in milliseconds
+ * 
+ * Input shall be pressed at most this amount of time to still trigger valid click.
+ * Set to `-1` to allow any time triggering click event.
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MAX
+#define LWBTN_CFG_TIME_CLICK_MAX 300
+#endif
+
+/**
+ * \brief           Maximum allowed time between last on-release and next valid on-press,
+ *                  to still allow multi-click events, in milliseconds
+ * 
+ * This value is also used as a timeout length. It sends *onclick* event if there
+ * is no further presses by the application.
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX
+#define LWBTN_CFG_TIME_CLICK_MULTI_MAX 400
+#endif
+
+/**
+ * \brief           Maximum number of allowed consecutive click events,
+ *                  before structure gets reset to default value
+ */
+#ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 3
+#endif
+
+/**
+ * \brief           Keep-alive event period, in milliseconds
+ * 
+ */
+#ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD
+#define LWBTN_CFG_TIME_KEEPALIVE_PERIOD 100
+#endif
+
+/**
  * \}
  */
 

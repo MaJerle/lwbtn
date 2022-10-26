@@ -8,6 +8,7 @@ static uint32_t get_tick(void);
 
 /* User defined settings */
 const int keys[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+uint32_t last_time_keys[sizeof(keys) / sizeof(keys[0])] = {0};
 
 /* List of buttons to process */
 static lwbtn_btn_t btns[] = {{.arg = (void*)&keys[0]}, {.arg = (void*)&keys[1]}, {.arg = (void*)&keys[2]},
@@ -36,19 +37,38 @@ prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
  */
 void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
-    const char* s = "unknown";
-    (void)lw;
+    const char* s;
+    uint32_t color;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    uint32_t* diff_time_ptr = &last_time_keys[(*(int*)btn->arg) - '0'];
+    uint32_t diff_time = get_tick() - *diff_time_ptr;
+
+    *diff_time_ptr = get_tick(); /* Set current date as last one */
 
     /* Get event string */
-    s = ((evt == LWBTN_EVT_KEEPALIVE)
-             ? "KEEPALIVE"
-             : ((evt == LWBTN_EVT_ONPRESS)
-                    ? "  ONPRESS"
-                    : ((evt == LWBTN_EVT_ONRELEASE) ? "ONRELEASE"
-                                                    : ((evt == LWBTN_EVT_ONCLICK) ? "  ONCLICK" : "  UNKNOWN"))));
+    if (evt == LWBTN_EVT_KEEPALIVE) {
+        s = "KEEPALIVE";
+        color = FOREGROUND_RED;
+    } else if (evt == LWBTN_EVT_ONPRESS) {
+        s = "  ONPRESS";
+        color = FOREGROUND_GREEN;
+    } else if (evt == LWBTN_EVT_ONRELEASE) {
+        s = "ONRELEASE";
+        color = FOREGROUND_BLUE;
+    } else if (evt == LWBTN_EVT_ONCLICK) {
+        s = "  ONCLICK";
+        color = FOREGROUND_RED | FOREGROUND_GREEN;
+    } else {
+        s = "  UNKNOWN";
+        color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+    }
+    SetConsoleTextAttribute(hConsole, color);
 
-    printf("[%7u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(), *(int*)btn->arg, s,
-           (unsigned)btn->keepalive.cnt, (unsigned)btn->click.cnt);
+    printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
+           (unsigned)diff_time, *(int*)btn->arg, s, (unsigned)btn->keepalive.cnt, (unsigned)btn->click.cnt);
+
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+    (void)lw;
 }
 
 int

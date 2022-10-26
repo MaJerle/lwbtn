@@ -36,21 +36,12 @@
 
 #define LWBTN_FLAG_ONPRESS_SENT               ((uint16_t)0x0001)
 
-/*!< Minimum debounce time to wait before taking further input actions */
-#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn)      20
-/*!< Minimum pressed time to consider it as a potential click event. Set to `0` to disable max time */
-#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) 20
-/*!< Maximal pressed time to consider "click" event. Set to `0xFFFFFFFF` to disable this feature */
-#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) 300
-/*!< Maximum allowed time (timeout) for user to handle consecutive click events */
-#define LWBTN_TIME_CLICK_MAX_MULTI(btn)       500
-/*!< Keep alive time period in milliseconds. It defines frequency of keepa-live events sent to user */
-#define LWBTN_TIME_KEEPALIVE_PERIOD(btn)      100
-/*!< Minimum time in ms to wait to send click event in timeout.
-        Timeout starts counting after on-release event and if click event is being well detected */
-#define LWBTN_TIME_CLICK_SEND_TIMEOUT(btn)    300
-/*!< Max consecutive clicks allowed before forcing to reset the counter */
-#define LWBTN_CLICK_MAX_CONSECUTIVE(btn)      3
+#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn)      LWBTN_CFG_TIME_DEBOUNCE
+#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) LWBTN_CFG_TIME_CLICK_MIN
+#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) LWBTN_CFG_TIME_CLICK_MAX
+#define LWBTN_TIME_CLICK_MAX_MULTI(btn)       LWBTN_CFG_TIME_CLICK_MULTI_MAX
+#define LWBTN_TIME_KEEPALIVE_PERIOD(btn)      LWBTN_CFG_TIME_KEEPALIVE_PERIOD
+#define LWBTN_CLICK_MAX_CONSECUTIVE(btn)      LWBTN_CFG_CLICK_MAX_CONSECUTIVE
 
 /* Default button group instance */
 static lwbtn_t lwbtn_default;
@@ -121,8 +112,8 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                     lw->evt_fn(lw, btn, LWBTN_EVT_ONRELEASE);
 
                     /* Check time validity for click event */
-                    if ((mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(b)
-                        && (mstime - btn->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(b)) {
+                    if ((mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)
+                        && (mstime - btn->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn)) {
 
                         /*
                          * Increase consecutive clicks if max not reached yet
@@ -130,8 +121,8 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                          * 
                          * Otherwise we consider click as fresh one
                          */
-                        if (btn->click.cnt > 0 && btn->click.cnt < LWBTN_CLICK_MAX_CONSECUTIVE(b)
-                            && (mstime - btn->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(b)) {
+                        if (btn->click.cnt > 0 && btn->click.cnt < LWBTN_CLICK_MAX_CONSECUTIVE(btn)
+                            && (mstime - btn->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
                             ++btn->click.cnt;
                         } else {
                             btn->click.cnt = 1;
@@ -171,14 +162,14 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              */
             if (!(btn->flags & LWBTN_FLAG_ONPRESS_SENT)) {
                 /* Check minimum stable time */
-                if ((mstime - btn->time_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(b)) {
+                if ((mstime - btn->time_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(btn)) {
                     /*
                      * Immediately send click event if number of 
                      * previous consecutive clicks reached maximum level.
                      * 
                      * Handle this before sending on-press state
                      */
-                    if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(b)) {
+                    if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
                         lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
                         btn->click.cnt = 0;
                     }
@@ -197,8 +188,8 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              * Keep alive is sent when valid press is being detected
              */
             else {
-                if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(b)) {
-                    btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(b);
+                if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
+                    btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                     ++btn->keepalive.cnt;
                     lw->evt_fn(lw, btn, LWBTN_EVT_KEEPALIVE);
                 }
@@ -219,7 +210,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              * that will force the timing to postpone event generation
              */
             if (btn->click.cnt > 0) {
-                if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_SEND_TIMEOUT(b)) {
+                if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
                     lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
