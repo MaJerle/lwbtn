@@ -109,6 +109,20 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` immediate onclick event 
+ *                  after on-release event, if number of consecutive
+ *                  clicks reaches max value.
+ * 
+ * When this mode is disabled, onclick is sent in one of 2 cases:
+ * 
+ * - An on-click timeout occurred
+ * - Next on-press event occurred before timeout expired
+ */
+#ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY 1
+#endif
+
+/**
  * \}
  */
 

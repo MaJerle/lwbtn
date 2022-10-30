@@ -137,6 +137,18 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                          * these will be sent after the timeout window (and after the on-release event)
                          */
                     }
+
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
+                    /* 
+                     * Depending on the configuration,
+                     * this part will send on-click event immediately after release event,
+                     * if maximum number of consecutive clicks has been reached.
+                     */
+                    if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
+                        lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
+                        btn->click.cnt = 0;
+                    }
+#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
                 }
             }
 
@@ -163,18 +175,19 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
             if (!(btn->flags & LWBTN_FLAG_ONPRESS_SENT)) {
                 /* Check minimum stable time */
                 if ((mstime - btn->time_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(btn)) {
+#if !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
                     /*
-                     * Immediately send click event if number of 
-                     * previous consecutive clicks reached maximum level.
-                     * 
-                     * Handle this before sending on-press state
+                     * Depending on the configuration,
+                     * this part will send on-click event just before the next on-press release,
+                     * if maximum number of consecutive clicks has been reached.
                      */
                     if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
                         lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
                         btn->click.cnt = 0;
                     }
+#endif /* !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
 
-                    /* Now start with new on-press */
+                    /* Start with new on-press */
                     btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
                     lw->evt_fn(lw, btn, LWBTN_EVT_ONPRESS);
 
@@ -182,6 +195,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                     btn->keepalive.last_time = mstime;
                 }
             }
+
             /*
              * Handle keep alive, but only if on-press event has been sent
              *
@@ -201,13 +215,12 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
          */
         else {
             /* 
-             * As we want to allow user to perform "multi-click" before sending
-             * the actual "onclick" event, we shall ensure certain timeout before sending
-             * that "onclick event".
+             * Based on te configuration, this part of the code
+             * will send on-click event after certain timeout.
              * 
-             * This part checks for number of consecutive clicks being more than 0,
-             * and will process the onclick event to user, unless there is another click in the meantime,
-             * that will force the timing to postpone event generation
+             * This feature is useful if users prefers multi-click feature
+             * that is reported only after last click event happened,
+             * including number of clicks made by user
              */
             if (btn->click.cnt > 0) {
                 if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {

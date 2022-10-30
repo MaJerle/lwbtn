@@ -43,6 +43,10 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     uint32_t* diff_time_ptr = &last_time_keys[(*(int*)btn->arg) - '0'];
     uint32_t diff_time = get_tick() - *diff_time_ptr;
 
+    /* This is for purpose of test and timing validation */
+    if (diff_time > 2000) {
+        diff_time = 0;
+    }
     *diff_time_ptr = get_tick(); /* Set current date as last one */
 
     /* Get event string */
@@ -63,10 +67,8 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
         color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
     SetConsoleTextAttribute(hConsole, color);
-
     printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
            (unsigned)diff_time, *(int*)btn->arg, s, (unsigned)btn->keepalive.cnt, (unsigned)btn->click.cnt);
-
     SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
     (void)lw;
 }

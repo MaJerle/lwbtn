@@ -70,6 +70,17 @@ When conditions are met, **onclick** event is sent, either immediately after **o
 
     Sequence for valid click event
 
+A windows-test program demonstration of events is visible below. 
+
+.. figure:: ../static/images/log-btn-event-click.png
+    :align: center
+    :alt: Click event test program
+
+    Click event test program
+
+Second number for each line is a **milliseconds** difference between events.
+OnClick is reported approximately (windows real-time issue) ``400`` ms after on-release event.
+
 Multi-click events
 ^^^^^^^^^^^^^^^^^^
 
@@ -92,8 +103,25 @@ Simplified diagram for multi-click, ignoring debounce time indicators, is below.
 
     Multi-click event example - with 3 consecutive presses
 
+A windows-test program demonstration of events is visible below. 
+
+.. figure:: ../static/images/log-btn-event-click-multi.png
+    :align: center
+    :alt: Multi-click event test program
+
+    Multi-click event test program
+
+Multi-click event with **onclick** event reported only after second press after minimum timeout of ``400ms``.
+
 Number of consecutive clicks can be upper-limited to the desired value.
 When user makes more (or equal) consecutive clicks than maximum, an **onclick** event is sent immediately after **onrelease** event for last detected click.
+
+.. figure:: ../static/images/log-btn-event-click-multi-max.png
+    :align: center
+    :alt: Max number of onclick events
+
+    Max number of onclick events, onclick is sent immediately after onrelease
+
 There is no need to wait timeout expiration since upper clicks limit has been reached. 
 This is illustrated in the picture below, showing event sequence when:
 
@@ -105,6 +133,12 @@ This is illustrated in the picture below, showing event sequence when:
     :alt: Multi-click events with too many clicks
 
     Multi-click events with too many clicks
+
+.. figure:: ../static/images/log-btn-event-click-multi-max-over.png
+    :align: center
+    :alt: 5 presses detected with 3 set as maximum
+
+    5 presses detected with 3 set as maximum. First on-click is sent immediately, while second is sent after timeout
 
 When **multi-click** feature is disabled, **onclick** event is sent after every valid sequence of **onpress** and **onrelease** events.
 
