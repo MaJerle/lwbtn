@@ -123,6 +123,11 @@ When user makes more (or equal) consecutive clicks than maximum, an **onclick** 
     Max number of onclick events, onclick is sent immediately after onrelease
 
 There is no need to wait timeout expiration since upper clicks limit has been reached. 
+
+.. tip::
+    It is possible to control the behavior of **onclick** event timing using :c:macro:`LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY` configuration.
+    When enabled, behavior is as illustrated above. When disabled, **onclick** event it sent in timeout (or in case of new onpress), even if max allowed clicks has been reached.
+
 This is illustrated in the picture below, showing event sequence when:
 
 * Max number of consecutive clicks is ``3``
@@ -130,9 +135,18 @@ This is illustrated in the picture below, showing event sequence when:
 
 .. figure:: ../static/images/btn-events-click-multi-over.svg
     :align: center
-    :alt: Multi-click events with too many clicks
+    :alt: Multi-click events with too many clicks - consecutive send immediately is enabled
 
-    Multi-click events with too many clicks
+    Multi-click events with too many clicks - consecutive send immediately is enabled
+
+.. figure:: ../static/images/btn-events-click-multi-over-send-on-press.svg
+    :align: center
+    :alt: Multi-click events with too many clicks - consecutive send immediately is disabled
+
+    Multi-click events with too many clicks - consecutive send immediately is disabled
+
+Image below illustrates when send immediately is enabled. It is visible how first **onclick** is sent
+just after **onrelease** event (when max consecutive is set to ``3``).
 
 .. figure:: ../static/images/log-btn-event-click-multi-max-over.png
     :align: center
