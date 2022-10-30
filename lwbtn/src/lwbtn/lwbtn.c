@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.0
+ * Version:         v0.0.1
  */
 #include <string.h>
 #include "lwbtn/lwbtn.h"
