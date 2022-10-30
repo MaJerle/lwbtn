@@ -97,7 +97,7 @@ extern "C" {
  *                  before structure gets reset to default value
  */
 #ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE
-#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 1
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 3
 #endif
 
 /**
