@@ -81,13 +81,18 @@ A windows-test program demonstration of events is visible below.
 Second number for each line is a **milliseconds** difference between events.
 OnClick is reported approximately (windows real-time issue) ``400`` ms after on-release event.
 
+.. tip::
+    Timeout window between last **onrelease** event and **onclick** event is configurable
+
 Multi-click events
 ^^^^^^^^^^^^^^^^^^
 
-Multi-click feature is where **timeout** for **Onclick** comes into play.
-Idea behind timeout feature is to allow multiple presses and only send **onclick** once for all presses,
-including the number of detected presses during that time. This let's application to react only
-once with known number of presses. This eliminates the problem where in case of **double** click trigger, you also receive **single-click** event.
+Multi-click feature is where **timeout** for **onclick** event comes into play.
+Idea behind timeout feature is to allow multiple presses and to only send **onclick** once for all presses,
+including the number of detected presses during that time. This let's the application to react only
+once with known number of presses.
+This eliminates the problem where in case of **double** click trigger, you also receive **single-click** event,
+while you do not know yet, if second (or third) event will be triggered after.
 
 .. note::
     Imagine having a button that toggles one light on single click and turns off all lights in a room on double click.
@@ -113,7 +118,9 @@ A windows-test program demonstration of events is visible below.
 
 Multi-click event with **onclick** event reported only after second press after minimum timeout of ``400ms``.
 
-Number of consecutive clicks can be upper-limited to the desired value.
+.. note::
+    Number of consecutive clicks can be upper-limited to the desired value.
+
 When user makes more (or equal) consecutive clicks than maximum, an **onclick** event is sent immediately after **onrelease** event for last detected click.
 
 .. figure:: ../static/images/log-btn-event-click-multi-max.png
@@ -125,10 +132,10 @@ When user makes more (or equal) consecutive clicks than maximum, an **onclick** 
 There is no need to wait timeout expiration since upper clicks limit has been reached. 
 
 .. tip::
-    It is possible to control the behavior of **onclick** event timing using :c:macro:`LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY` configuration.
+    It is possible to control the behavior of **onclick** event (when consecutive number reaches maximum set value) timing using :c:macro:`LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY` configuration.
     When enabled, behavior is as illustrated above. When disabled, **onclick** event it sent in timeout (or in case of new onpress), even if max allowed clicks has been reached.
 
-This is illustrated in the picture below, showing event sequence when:
+Illustration below shows what happens during multiple clicks
 
 * Max number of consecutive clicks is ``3``
 * User makes ``4`` consecutive clicks
@@ -137,11 +144,11 @@ This is illustrated in the picture below, showing event sequence when:
     :align: center
     :alt: Multi-click events with too many clicks - consecutive send immediately is enabled
 
-    Multi-click events with too many clicks - consecutive send immediately is enabled
+    Multi-click events with too many clicks - consecutive send immediately is enabled - it is sent after 3rd onrelease
 
 .. figure:: ../static/images/btn-events-click-multi-over-send-on-press.svg
     :align: center
-    :alt: Multi-click events with too many clicks - consecutive send immediately is disabled
+    :alt: Multi-click events with too many clicks - consecutive send immediately is disabled - it is sent before 4th onpress
 
     Multi-click events with too many clicks - consecutive send immediately is disabled
 
@@ -166,6 +173,14 @@ When **multi-click** feature is disabled, **onclick** event is sent after every 
 
     Multi-click events disabled with cp == 1
 
+Demo log text, with fast pressing of button, and events reported after every **onrelease**
+
+.. figure:: ../static/images/log-btn-event-click-disabled.png
+    :align: center
+    :alt: Multi-click events disabled with cp == 1
+
+    Multi-click events disabled with cp == 1
+
 Keep alive event
 ^^^^^^^^^^^^^^^^
 
@@ -179,3 +194,9 @@ Feature can be used to make a trigger at specific time if button is in active st
     :alt: Keep alive events with 2 successful click events
 
     Keep alive events with 2 successful click events
+
+.. figure:: ../static/images/log-btn-event-keep-alive.png
+    :align: center
+    :alt: Keep alive events when button is kept pressed
+
+    Keep alive events when button is kept pressed
