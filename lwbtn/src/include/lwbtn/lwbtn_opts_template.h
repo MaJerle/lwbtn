@@ -31,8 +31,8 @@
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
  * Version:         v0.0.1
  */
-#ifndef LWBTN_HDR_OPTS_H
-#define LWBTN_HDR_OPTS_H
+#ifndef LWBTN_OPTS_HDR_H
+#define LWBTN_OPTS_HDR_H
 
 /* Rename this file to "lwbtn_opts.h" for your application */
 
@@ -41,4 +41,4 @@
  * copy & replace here settings you want to change values
  */
 
-#endif /* LWBTN_HDR_OPTS_H */
+#endif /* LWBTN_OPTS_HDR_H */

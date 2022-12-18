@@ -31,8 +31,8 @@
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
  * Version:         v0.0.1
  */
-#ifndef LWBTN_HDR_OPT_H
-#define LWBTN_HDR_OPT_H
+#ifndef LWBTN_OPT_HDR_H
+#define LWBTN_OPT_HDR_H
 
 /* Uncomment to ignore user options (or set macro in compiler flags) */
 /* #define LWBTN_IGNORE_USER_OPTS */
@@ -130,4 +130,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-#endif /* LWBTN_HDR_OPT_H */
+#endif /* LWBTN_OPT_HDR_H */
