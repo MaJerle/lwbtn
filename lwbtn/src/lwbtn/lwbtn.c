@@ -45,11 +45,11 @@
 
 /* Default button group instance */
 static lwbtn_t lwbtn_default;
-#define LWBTN_GET_LW(in_lw) ((in_lw) != NULL ? (in_lw) : (&lwbtn_default))
+#define LWBTN_GET_LWOBJ(in_lwobj) ((in_lwobj) != NULL ? (in_lwobj) : (&lwbtn_default))
 
 /**
  * \brief           Initialize button manager
- * \param[in]       lw: LwBTN instance. Set to `NULL` to use default one
+ * \param[in]       lwobj: LwBTN instance. Set to `NULL` to use default one
  * \param[in]       btns: Array of buttons to process
  * \param[in]       btns_cnt: Number of buttons to process
  * \param[in]       get_state_fn: Pointer to function providing button state on demand
@@ -57,38 +57,40 @@ static lwbtn_t lwbtn_default;
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwbtn_init_ex(lwbtn_t* lw, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn, lwbtn_evt_fn evt_fn) {
-    lw = LWBTN_GET_LW(lw);
+lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,
+              lwbtn_evt_fn evt_fn) {
+    lwobj = LWBTN_GET_LWOBJ(lwobj);
 
     if (btns == NULL || btns_cnt == 0 || get_state_fn == NULL || evt_fn == NULL) {
         return 0;
     }
-    memset(lw, 0x00, sizeof(*lw));
-    lw->btns = btns;
-    lw->btns_cnt = btns_cnt;
-    lw->evt_fn = evt_fn;
-    lw->get_state_fn = get_state_fn;
+    memset(lwobj, 0x00, sizeof(*lwobj));
+    lwobj->btns = btns;
+    lwobj->btns_cnt = btns_cnt;
+    lwobj->evt_fn = evt_fn;
+    lwobj->get_state_fn = get_state_fn;
     return 1;
 }
 
 /**
  * \brief           Button processing function,
  * that reads the inputs and makes actions accordingly.
+ * \param[in]       lwobj: LwBTN instance. Set to `NULL` to use default one
  * \param[in]       mstime: Current time in milliseconds
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
+lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime) {
     lwbtn_btn_t* btn = NULL;
     uint8_t new_state = 0;
 
-    lw = LWBTN_GET_LW(lw);
+    lwobj = LWBTN_GET_LWOBJ(lwobj);
 
     /* Process all buttons */
-    for (size_t index = 0; index < lw->btns_cnt; ++index) {
-        btn = &lw->btns[index];
+    for (size_t index = 0; index < lwobj->btns_cnt; ++index) {
+        btn = &lwobj->btns[index];
 
-        new_state = lw->get_state_fn(lw, btn); /* Get button state */
+        new_state = lwobj->get_state_fn(lwobj, btn); /* Get button state */
 
         /*
          * Button state has changed
@@ -109,7 +111,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                 if (btn->flags & LWBTN_FLAG_ONPRESS_SENT) {
                     /* Handle on-release event */
                     btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
-                    lw->evt_fn(lw, btn, LWBTN_EVT_ONRELEASE);
+                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONRELEASE);
 
                     /* Check time validity for click event */
                     if ((mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)
@@ -145,7 +147,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                      * if maximum number of consecutive clicks has been reached.
                      */
                     if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
-                        lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
+                        lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                         btn->click.cnt = 0;
                     }
 #endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
@@ -182,14 +184,14 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                      * if maximum number of consecutive clicks has been reached.
                      */
                     if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
-                        lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
+                        lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                         btn->click.cnt = 0;
                     }
 #endif /* !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
 
                     /* Start with new on-press */
                     btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
-                    lw->evt_fn(lw, btn, LWBTN_EVT_ONPRESS);
+                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONPRESS);
 
                     /* Set keep alive time */
                     btn->keepalive.last_time = mstime;
@@ -205,7 +207,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
                 if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                     btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                     ++btn->keepalive.cnt;
-                    lw->evt_fn(lw, btn, LWBTN_EVT_KEEPALIVE);
+                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
                 }
             }
         }
@@ -224,7 +226,7 @@ lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime) {
              */
             if (btn->click.cnt > 0) {
                 if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
-                    lw->evt_fn(lw, btn, LWBTN_EVT_ONCLICK);
+                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
             }

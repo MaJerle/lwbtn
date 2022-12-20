@@ -80,19 +80,19 @@ typedef enum {
 
 /**
  * \brief           Button event function callback prototype
- * \param[in]       lw: LwBTN instance
+ * \param[in]       lwobj: LwBTN instance
  * \param[in]       btn: Button instance from array for which event occured
  * \param[in]       evt: Event type
  */
-typedef void (*lwbtn_evt_fn)(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt);
+typedef void (*lwbtn_evt_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn, lwbtn_evt_t evt);
 
 /**
  * \brief           Get button/input state callback function
- * \param[in]       lw: LwBTN instance
+ * \param[in]       lwobj: LwBTN instance
  * \param[in]       btn: Button instance from array to read state
  * \return          `1` when button is considered `active`, `0` otherwise
  */
-typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lw, struct lwbtn_btn* btn);
+typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn);
 
 /**
  * \brief           Button/input structure
@@ -126,9 +126,9 @@ typedef struct lwbtn {
     lwbtn_get_state_fn get_state_fn; /*!< Pointer to get state function */
 } lwbtn_t;
 
-uint8_t lwbtn_init_ex(lwbtn_t* lw, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,
+uint8_t lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,
                       lwbtn_evt_fn evt_fn);
-uint8_t lwbtn_process_ex(lwbtn_t* lw, uint32_t mstime);
+uint8_t lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime);
 
 /**
  * \brief           Initialize LwBTN library with buttons on default button group
