@@ -98,7 +98,11 @@ typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn
  * \brief           Button/input structure
  */
 typedef struct lwbtn_btn {
-    uint16_t flags;       /*!< Private button flags management */
+    uint16_t flags; /*!< Private button flags management */
+#if LWBTN_CFG_ALLOW_MANUAL_STATE_SET
+    uint8_t curr_state;   /*!< Current button state to be processed. It is used 
+                                to keep track when application manually sets the button state */
+#endif                    /* LWBTN_CFG_ALLOW_MANUAL_STATE_SET */
     uint8_t old_state;    /*!< Old button state - `1` means active, `0` means inactive */
     uint32_t time_change; /*!< Time in ms when button state got changed last time */
 
@@ -120,32 +124,46 @@ typedef struct lwbtn_btn {
  * \brief           LwBTN group structure
  */
 typedef struct lwbtn {
-    lwbtn_btn_t* btns;               /*!< Pointer to buttons array */
-    uint16_t btns_cnt;               /*!< Number of buttons in array */
-    lwbtn_evt_fn evt_fn;             /*!< Pointer to event function */
+    lwbtn_btn_t* btns;   /*!< Pointer to buttons array */
+    uint16_t btns_cnt;   /*!< Number of buttons in array */
+    lwbtn_evt_fn evt_fn; /*!< Pointer to event function */
+#if !LWBTN_CFG_FORCE_MANUAL_STATE_SET
     lwbtn_get_state_fn get_state_fn; /*!< Pointer to get state function */
+#endif                               /* !LWBTN_CFG_FORCE_MANUAL_STATE_SET */
 } lwbtn_t;
 
 uint8_t lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,
                       lwbtn_evt_fn evt_fn);
 uint8_t lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime);
+uint8_t lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime);
+uint8_t lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state);
 
 /**
  * \brief           Initialize LwBTN library with buttons on default button group
  * \param[in]       btns: Array of buttons to process
  * \param[in]       btns_cnt: Number of buttons to process
- * \param[in]       get_state_fn: Pointer to function providing button state on demand
+ * \param[in]       get_state_fn: Pointer to function providing button state on demand.
+ *                      Can be set to `NULL` if \ref LWBTN_CFG_FORCE_MANUAL_STATE_SET is enabled
  * \param[in]       evt_fn: Button event function callback
  * \sa              lwbtn_init_ex
  */
 #define lwbtn_init(btns, btns_cnt, get_state_fn, evt_fn) lwbtn_init_ex(NULL, btns, btns_cnt, get_state_fn, evt_fn)
 
 /**
- * \brief           Periodically read button states and take appropriate actions
+ * \brief           Periodically read button states and take appropriate actions.
+ * It processes the default buttons instance group.
  * \param[in]       mstime: Current system time in milliseconds
  * \sa              lwbtn_process_ex
  */
 #define lwbtn_process(mstime)                            lwbtn_process_ex(NULL, mstime)
+
+/**
+ * \brief           Process specific button in a default LwBTN instance
+ * 
+ * \param[in]       btn: Button instance to process
+ * \param[in]       mstime: Current system time in milliseconds
+ */
+#define lwbtn_process_btn(btn, mstime)                   lwbtn_process_btn_ex(NULL, (btn), (mstime))
 
 /**
  * \}

@@ -142,9 +142,32 @@ extern "C" {
  * API functions are modified and no longer support callback parameter for new state check.
  * 
  * \note            This can only be used when \ref LWBTN_CFG_ALLOW_MANUAL_STATE_SET is enabled.
+ * 
+ * Combination of both, \ref LWBTN_CFG_ALLOW_MANUAL_STATE_SET and \ref LWBTN_CFG_FORCE_MANUAL_STATE_SET, provides
+ * 
+ * | ALLOW_MANUAL_STATE | FORCE_MANUAL_STATE | Comment
+ * +--------------------+--------------------+------------------------------------------------------------------+
+ * |          0         |          0         | A callback is used to get new button state
+ * +--------------------+--------------------+------------------------------------------------------------------+
+ * |          0         |          1         | Compilation error -> invalid configuration
+ * +--------------------+--------------------+------------------------------------------------------------------+
+ * |          1         |          0         | API to manually set the state is enabled. 
+ * |                    |                    |  Default setting to get new state remains a callback check.
+ * |                    |                    |  If user calls API to manually set the state for specific button,
+ * |                    |                    |  callback is no more used for that specific button and only
+ * |                    |                    |  manual API can set new state from now on -> use with caution.
+ * |                    |                    |  Buttons where manual API was not called on, are still checked
+ * |                    |                    |  through callback.
+ * |                    |                    |  
+ * |                    |                    |  You would normally enable this feature when library is used
+ * |                    |                    |  with various button types and you may want this flexibility.
+ * +--------------------+--------------------+------------------------------------------------------------------+
+ * |          1         |          1         | Callback API for new state is completely disabled.
+ * |                    |                    |  user must manually set the state for all buttons.
+ * +--------------------+--------------------+------------------------------------------------------------------+
  */
 #ifndef LWBTN_CFG_FORCE_MANUAL_STATE_SET
-#define LWBTN_CFG_FORCE_MANUAL_STATE_SET 1
+#define LWBTN_CFG_FORCE_MANUAL_STATE_SET 0
 #endif
 
 /**
