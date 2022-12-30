@@ -123,6 +123,31 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` optional manual state set for buttons.
+ * 
+ * When this feature is enabled, user has an option to use a callback for state check,
+ * or can manually set the button state with API functions.
+ * 
+ * After user has once manually set state for the button, it can not longer be set back
+ * to callback state check.
+ */
+#ifndef LWBTN_CFG_ALLOW_MANUAL_STATE_SET
+#define LWBTN_CFG_ALLOW_MANUAL_STATE_SET 0
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` force manual button state set.
+ * 
+ * When enabled, it forces the user to manually set the state of the button.
+ * API functions are modified and no longer support callback parameter for new state check.
+ * 
+ * \note            This can only be used when \ref LWBTN_CFG_ALLOW_MANUAL_STATE_SET is enabled.
+ */
+#ifndef LWBTN_CFG_FORCE_MANUAL_STATE_SET
+#define LWBTN_CFG_FORCE_MANUAL_STATE_SET 1
+#endif
+
+/**
  * \}
  */
 
