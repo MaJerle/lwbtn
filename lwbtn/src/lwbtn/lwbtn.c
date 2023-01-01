@@ -237,10 +237,10 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
               lwbtn_evt_fn evt_fn) {
     lwobj = LWBTN_GET_LWOBJ(lwobj);
 
-    if (btns == NULL || btns_cnt == 0 || get_state_fn == NULL
+    if (btns == NULL || btns_cnt == 0 || evt_fn == NULL
 #if LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK
-        || evt_fn == NULL /* Parameter is a must only in callback-only mode */
-#endif                    /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK */
+        || get_state_fn == NULL /* Parameter is a must only in callback-only mode */
+#endif                          /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK */
     ) {
         return 0;
     }
