@@ -122,52 +122,26 @@ extern "C" {
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY 1
 #endif
 
-/**
- * \brief           Enables `1` or disables `0` optional manual state set for buttons.
- * 
- * When this feature is enabled, user has an option to use a callback for state check,
- * or can manually set the button state with API functions.
- * 
- * After user has once manually set state for the button, it can not longer be set back
- * to callback state check.
- */
-#ifndef LWBTN_CFG_ALLOW_MANUAL_STATE_SET
-#define LWBTN_CFG_ALLOW_MANUAL_STATE_SET 0
-#endif
+#define LWBTN_GET_STATE_MODE_CALLBACK           0 /*!< Callback-only state mode */
+#define LWBTN_GET_STATE_MODE_MANUAL             1 /*!< Manual-only state mode */
+#define LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL 2 /*!< Callback or manual state mode */
 
 /**
- * \brief           Enables `1` or disables `0` force manual button state set.
+ * \brief           Sets the mode how new button state is acquired.
  * 
- * When enabled, it forces the user to manually set the state of the button.
- * API functions are modified and no longer support callback parameter for new state check.
+ * Different modes are availale, set with the level number:
  * 
- * \note            This can only be used when \ref LWBTN_CFG_ALLOW_MANUAL_STATE_SET is enabled.
+ * - `LWBTN_GET_STATE_MODE_CALLBACK`: State of the button is checked through *get state* callback function (default mode, legacy)
+ * - `LWBTN_GET_STATE_MODE_MANUAL`: Only manual state set is enabled. Application must set the button state with API functions.
+ *          Callback API is not used.
+ * - `LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL`: State of the button is checked through *get state* callback function (by default).
+ *          It enables API to manually set the state with approapriate function call.
+ *          Button state is checked with the callback at least until manual state API function is called.
  * 
- * Combination of both, \ref LWBTN_CFG_ALLOW_MANUAL_STATE_SET and \ref LWBTN_CFG_FORCE_MANUAL_STATE_SET, provides
- * 
- * | ALLOW_MANUAL_STATE | FORCE_MANUAL_STATE | Comment
- * +--------------------+--------------------+------------------------------------------------------------------+
- * |          0         |          0         | A callback is used to get new button state
- * +--------------------+--------------------+------------------------------------------------------------------+
- * |          0         |          1         | Compilation error -> invalid configuration
- * +--------------------+--------------------+------------------------------------------------------------------+
- * |          1         |          0         | API to manually set the state is enabled. 
- * |                    |                    |  Default setting to get new state remains a callback check.
- * |                    |                    |  If user calls API to manually set the state for specific button,
- * |                    |                    |  callback is no more used for that specific button and only
- * |                    |                    |  manual API can set new state from now on -> use with caution.
- * |                    |                    |  Buttons where manual API was not called on, are still checked
- * |                    |                    |  through callback.
- * |                    |                    |  
- * |                    |                    |  You would normally enable this feature when library is used
- * |                    |                    |  with various button types and you may want this flexibility.
- * +--------------------+--------------------+------------------------------------------------------------------+
- * |          1         |          1         | Callback API for new state is completely disabled.
- * |                    |                    |  user must manually set the state for all buttons.
- * +--------------------+--------------------+------------------------------------------------------------------+
+ *      This allows multiple build configurations for various button types
  */
-#ifndef LWBTN_CFG_FORCE_MANUAL_STATE_SET
-#define LWBTN_CFG_FORCE_MANUAL_STATE_SET 0
+#ifndef LWBTN_CFG_GET_STATE_MODE
+#define LWBTN_CFG_GET_STATE_MODE LWBTN_GET_STATE_MODE_CALLBACK
 #endif
 
 /**

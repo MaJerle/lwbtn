@@ -99,10 +99,10 @@ typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn
  */
 typedef struct lwbtn_btn {
     uint16_t flags; /*!< Private button flags management */
-#if LWBTN_CFG_ALLOW_MANUAL_STATE_SET
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK
     uint8_t curr_state;   /*!< Current button state to be processed. It is used 
                                 to keep track when application manually sets the button state */
-#endif                    /* LWBTN_CFG_ALLOW_MANUAL_STATE_SET */
+#endif                    /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
     uint8_t old_state;    /*!< Old button state - `1` means active, `0` means inactive */
     uint32_t time_change; /*!< Time in ms when button state got changed last time */
 
@@ -127,9 +127,9 @@ typedef struct lwbtn {
     lwbtn_btn_t* btns;   /*!< Pointer to buttons array */
     uint16_t btns_cnt;   /*!< Number of buttons in array */
     lwbtn_evt_fn evt_fn; /*!< Pointer to event function */
-#if !LWBTN_CFG_FORCE_MANUAL_STATE_SET
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL
     lwbtn_get_state_fn get_state_fn; /*!< Pointer to get state function */
-#endif                               /* !LWBTN_CFG_FORCE_MANUAL_STATE_SET */
+#endif                               /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL */
 } lwbtn_t;
 
 uint8_t lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,

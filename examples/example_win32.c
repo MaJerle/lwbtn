@@ -11,10 +11,11 @@ const int keys[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 uint32_t last_time_keys[sizeof(keys) / sizeof(keys[0])] = {0};
 
 /* List of buttons to process with assigned custom arguments for callback functions */
-static lwbtn_btn_t btns[] = {{.arg = (void*)&keys[0]}, {.arg = (void*)&keys[1]}, {.arg = (void*)&keys[2]},
-                             {.arg = (void*)&keys[3]}, {.arg = (void*)&keys[4]}, {.arg = (void*)&keys[5]},
-                             {.arg = (void*)&keys[6]}, {.arg = (void*)&keys[7]}, {.arg = (void*)&keys[8]},
-                             {.arg = (void*)&keys[9]}};
+static lwbtn_btn_t btns[] = {
+    {.arg = (void*)&keys[0]}, {.arg = (void*)&keys[1]}, {.arg = (void*)&keys[2]}, {.arg = (void*)&keys[3]},
+    {.arg = (void*)&keys[4]}, {.arg = (void*)&keys[5]}, {.arg = (void*)&keys[6]}, {.arg = (void*)&keys[7]},
+    {.arg = (void*)&keys[8]}, {.arg = (void*)&keys[9]},
+};
 
 /**
  * \brief           Get input state callback 
@@ -93,6 +94,13 @@ example_win32(void) {
     while (1) {
         /* Process forever */
         lwbtn_process_ex(NULL, get_tick());
+
+        /* Manually read button state */
+#if LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_MANUAL
+        for (size_t i = 0; i < sizeof(btns) / sizeof(btns[0]); ++i) {
+            lwbtn_set_btn_state(&btns[i], prv_btn_get_state(NULL, &btns[i]));
+        }
+#endif /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_MANUAL */
 
         /* Artificial sleep to offload win process */
         Sleep(5);

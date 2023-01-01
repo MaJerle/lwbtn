@@ -34,8 +34,8 @@
 #include <string.h>
 #include "lwbtn/lwbtn.h"
 
-#if LWBTN_CFG_FORCE_MANUAL_STATE_SET && !LWBTN_CFG_ALLOW_MANUAL_STATE_SET
-#error "LWBTN_CFG_FORCE_MANUAL_STATE_SET && !LWBTN_CFG_ALLOW_MANUAL_STATE_SET is not a valid combination"
+#if LWBTN_CFG_GET_STATE_MODE > 2
+#error "Invalid LWBTN_GET_STATE_MODE_CALLBACK configuration"
 #endif
 
 #define LWBTN_FLAG_ONPRESS_SENT ((uint16_t)0x0001) /*!< Flag indicates that on-press event has been sent */
@@ -50,19 +50,15 @@
 #define LWBTN_TIME_KEEPALIVE_PERIOD(btn)      LWBTN_CFG_TIME_KEEPALIVE_PERIOD
 #define LWBTN_CLICK_MAX_CONSECUTIVE(btn)      LWBTN_CFG_CLICK_MAX_CONSECUTIVE
 
-#if LWBTN_CFG_ALLOW_MANUAL_STATE_SET
-#if LWBTN_CFG_FORCE_MANUAL_STATE_SET
-/* Set the direct state */
-#define LWBTN_BTN_GET_STATE(lwobj, btn) (btn)->curr_state
-#else
-/* Check flag and decide how to get state */
+/* Get button state */
+#if LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK
+#define LWBTN_BTN_GET_STATE(lwobj, btn) ((lwobj)->get_state_fn((lwobj), (btn)))
+#elif LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_MANUAL
+#define LWBTN_BTN_GET_STATE(lwobj, btn) ((btn)->curr_state)
+#elif LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL
 #define LWBTN_BTN_GET_STATE(lwobj, btn)                                                                                \
     (((btn)->flags & LWBTN_FLAG_MANUAL_STATE) ? ((btn)->curr_state) : ((lwobj)->get_state_fn((lwobj), (btn))))
 #endif
-#else /* !LWBTN_CFG_ALLOW_MANUAL_STATE_SET */
-/* Get state from callback */
-#define LWBTN_BTN_GET_STATE(lwobj, btn) (lwobj)->get_state_fn((lwobj), (btn))
-#endif /* LWBTN_CFG_ALLOW_MANUAL_STATE_SET */
 
 /* Default button group instance */
 static lwbtn_t lwbtn_default;
@@ -230,7 +226,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
  * \param[in]       btns: Array of buttons to process
  * \param[in]       btns_cnt: Number of buttons to process
  * \param[in]       get_state_fn: Pointer to function providing button state on demand.
- *                      Can be set to `NULL` if \ref LWBTN_CFG_FORCE_MANUAL_STATE_SET is enabled
+ *                      May be set to `NULL` when \ref LWBTN_CFG_GET_STATE_MODE is set to manual.
  * \param[in]       evt_fn: Button event function callback
  * \return          `1` on success, `0` otherwise
  */
@@ -246,10 +242,11 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
     lwobj->btns = btns;
     lwobj->btns_cnt = btns_cnt;
     lwobj->evt_fn = evt_fn;
-#if !LWBTN_CFG_FORCE_MANUAL_STATE_SET
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL
     lwobj->get_state_fn = get_state_fn;
-#endif                  /* !LWBTN_CFG_FORCE_MANUAL_STATE_SET */
+#else
     (void)get_state_fn; /* May be unused */
+#endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL */
     return 1;
 }
 
@@ -302,13 +299,13 @@ lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
  */
 uint8_t
 lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state) {
-#if LWBTN_CFG_MANUAL_STATE_SET
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK
     btn->curr_state = state;
     btn->flags |= LWBTN_FLAG_MANUAL_STATE;
     return 1;
-#else
+#else  /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
     (void)btn;
     (void)state;
     return 0;
-#endif
+#endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
 }
