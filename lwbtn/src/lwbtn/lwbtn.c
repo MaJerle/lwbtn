@@ -57,7 +57,9 @@
 #define LWBTN_BTN_GET_STATE(lwobj, btn) ((btn)->curr_state)
 #elif LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL
 #define LWBTN_BTN_GET_STATE(lwobj, btn)                                                                                \
-    (((btn)->flags & LWBTN_FLAG_MANUAL_STATE) ? ((btn)->curr_state) : ((lwobj)->get_state_fn((lwobj), (btn))))
+    (((btn)->flags & LWBTN_FLAG_MANUAL_STATE)                                                                          \
+         ? ((btn)->curr_state)                                                                                         \
+         : (((lwobj)->get_state_fn != NULL) ? ((lwobj)->get_state_fn((lwobj), (btn))) : 0))
 #endif
 
 /* Default button group instance */
@@ -235,9 +237,14 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
               lwbtn_evt_fn evt_fn) {
     lwobj = LWBTN_GET_LWOBJ(lwobj);
 
-    if (btns == NULL || btns_cnt == 0 || get_state_fn == NULL || evt_fn == NULL) {
+    if (btns == NULL || btns_cnt == 0 || get_state_fn == NULL
+#if LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK
+        || evt_fn == NULL /* Parameter is a must only in callback-only mode */
+#endif                    /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK */
+    ) {
         return 0;
     }
+
     memset(lwobj, 0x00, sizeof(*lwobj));
     lwobj->btns = btns;
     lwobj->btns_cnt = btns_cnt;
