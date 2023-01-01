@@ -316,3 +316,16 @@ lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state) {
     return 0;
 #endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
 }
+
+/**
+ * \brief           Check if button is active.
+ * Active is considered when initial debounce period has been a pass.
+ * This is the period between on-press and on-release events.
+ * 
+ * \param[in]       btn: Button handle to check
+ * \return          `1` if active, `0` otherwise
+ */
+uint8_t
+lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
+    return btn != NULL && (btn->flags & LWBTN_FLAG_ONPRESS_SENT);
+}

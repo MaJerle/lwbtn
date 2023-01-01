@@ -137,6 +137,7 @@ uint8_t lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbt
 uint8_t lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime);
 uint8_t lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime);
 uint8_t lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state);
+uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
 
 /**
  * \brief           Initialize LwBTN library with buttons on default button group

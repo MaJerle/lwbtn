@@ -84,6 +84,7 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
  */
 int
 example_win32(void) {
+    uint32_t time_last;
     printf("Application running\r\n");
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&sys_start_time);
@@ -91,6 +92,7 @@ example_win32(void) {
     /* Define buttons */
     lwbtn_init_ex(NULL, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
 
+    time_last = get_tick();
     while (1) {
         /* Process forever */
         lwbtn_process_ex(NULL, get_tick());
@@ -101,6 +103,14 @@ example_win32(void) {
             lwbtn_set_btn_state(&btns[i], prv_btn_get_state(NULL, &btns[i]));
         }
 #endif /* LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_MANUAL */
+
+        /* Check if specific button is active and do some action */
+        if (lwbtn_is_btn_active(&btns[0])) {
+            if ((get_tick() - time_last) > 200) {
+                time_last = get_tick();
+                printf("Button is active\r\n");
+            }
+        }
 
         /* Artificial sleep to offload win process */
         Sleep(5);
