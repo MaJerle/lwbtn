@@ -53,6 +53,15 @@ extern "C" {
  */
 
 /**
+ * \brief           Enables `1` or disables `0` periodic keep alive events.
+ * 
+ * Default keep alive period is set with \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD macro
+ */
+#ifndef LWBTN_CFG_USE_KEEPALIVE
+#define LWBTN_CFG_USE_KEEPALIVE 1
+#endif
+
+/**
  * \brief           Minimum debounce time in units of milliseconds
  * 
  * This is the time input shall have stable level to detect valid *onpress* event

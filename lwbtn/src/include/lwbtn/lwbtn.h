@@ -75,7 +75,9 @@ typedef enum {
     LWBTN_EVT_ONPRESS = 0x00, /*!< On press event - sent when valid press is detected (after debounce if enabled) */
     LWBTN_EVT_ONRELEASE, /*!< On release event - sent when valid release event is detected (from active to inactive) */
     LWBTN_EVT_ONCLICK,   /*!< On Click event - sent when valid sequence of on-press and on-release events occurs */
+#if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
     LWBTN_EVT_KEEPALIVE, /*!< Keep alive event - sent periodically when button is active */
+#endif                   /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
 } lwbtn_evt_t;
 
 /**
@@ -99,18 +101,20 @@ typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn
  */
 typedef struct lwbtn_btn {
     uint16_t flags; /*!< Private button flags management */
-#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
     uint8_t curr_state;   /*!< Current button state to be processed. It is used 
                                 to keep track when application manually sets the button state */
-#endif                    /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
+#endif                    /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
     uint8_t old_state;    /*!< Old button state - `1` means active, `0` means inactive */
     uint32_t time_change; /*!< Time in ms when button state got changed last time */
 
+#if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
     struct {
         uint32_t last_time; /*!< Time in ms of last send keep alive event */
         uint16_t cnt;       /*!< Number of keep alive events sent after successful on-press detection.
                                     Value is reset after on-release */
     } keepalive;            /*!< Keep alive structure */
+#endif                      /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
 
     struct {
         uint32_t last_time; /*!< Time in ms of last successfully detected (not sent!) click event */
@@ -127,9 +131,9 @@ typedef struct lwbtn {
     lwbtn_btn_t* btns;   /*!< Pointer to buttons array */
     uint16_t btns_cnt;   /*!< Number of buttons in array */
     lwbtn_evt_fn evt_fn; /*!< Pointer to event function */
-#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL || __DOXYGEN__
     lwbtn_get_state_fn get_state_fn; /*!< Pointer to get state function */
-#endif                               /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL */
+#endif                               /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL || __DOXYGEN__ */
 } lwbtn_t;
 
 uint8_t lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,

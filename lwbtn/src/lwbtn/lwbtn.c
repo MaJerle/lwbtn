@@ -149,8 +149,10 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
             /* Do nothing - things are handled after debounce period */
         }
         btn->time_change = mstime;
+#if LWBTN_CFG_USE_KEEPALIVE
         btn->keepalive.last_time = mstime;
         btn->keepalive.cnt = 0;
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
     }
 
     /*
@@ -181,8 +183,10 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                 btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONPRESS);
 
+#if LWBTN_CFG_USE_KEEPALIVE
                 /* Set keep alive time */
                 btn->keepalive.last_time = mstime;
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
             }
         }
 
@@ -192,11 +196,13 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
          * Keep alive is sent when valid press is being detected
          */
         else {
+#if LWBTN_CFG_USE_KEEPALIVE
             if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                 btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                 ++btn->keepalive.cnt;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
             }
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
         }
     }
 

@@ -44,7 +44,7 @@ prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
 void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     const char* s;
-    uint32_t color;
+    uint32_t color, keepalive_cnt = 0;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     uint32_t* diff_time_ptr = &last_time_keys[(*(int*)btn->arg) - '0'];
     uint32_t diff_time = get_tick() - *diff_time_ptr;
@@ -56,9 +56,12 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     *diff_time_ptr = get_tick(); /* Set current date as last one */
 
     /* Get event string */
-    if (evt == LWBTN_EVT_KEEPALIVE) {
+    if (0) {
+#if LWBTN_CFG_USE_KEEPALIVE
+    } else if (evt == LWBTN_EVT_KEEPALIVE) {
         s = "KEEPALIVE";
         color = FOREGROUND_RED;
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
     } else if (evt == LWBTN_EVT_ONPRESS) {
         s = "  ONPRESS";
         color = FOREGROUND_GREEN;
@@ -72,9 +75,12 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
         s = "  UNKNOWN";
         color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
+#if LWBTN_CFG_USE_KEEPALIVE
+    keepalive_cnt = btn->keepalive.cnt;
+#endif
     SetConsoleTextAttribute(hConsole, color);
     printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
-           (unsigned)diff_time, *(int*)btn->arg, s, (unsigned)btn->keepalive.cnt, (unsigned)btn->click.cnt);
+           (unsigned)diff_time, *(int*)btn->arg, s, (unsigned)keepalive_cnt, (unsigned)btn->click.cnt);
     SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
     (void)lw;
 }
