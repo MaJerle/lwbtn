@@ -71,6 +71,15 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` runtime settable time debounce
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_RUNTIME
+#define LWBTN_CFG_TIME_DEBOUNCE_RUNTIME 0
+#endif
+
+/**
  * \brief           Minimum active input time for valid click event, in milliseconds
  * 
  * Input shall be pressed at least this amount of time to even consider the potential valid click event.
@@ -81,6 +90,15 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` runtime settable min time for click
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MIN_RUNTIME
+#define LWBTN_CFG_TIME_CLICK_MIN_RUNTIME 0
+#endif
+
+/**
  * \brief           Maximum active input time for valid click event, in milliseconds
  * 
  * Input shall be pressed at most this amount of time to still trigger valid click.
@@ -88,6 +106,15 @@ extern "C" {
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MAX
 #define LWBTN_CFG_TIME_CLICK_MAX 300
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` runtime settable max time for click
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MAX_RUNTIME
+#define LWBTN_CFG_TIME_CLICK_MAX_RUNTIME 0
 #endif
 
 /**
@@ -102,6 +129,15 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` runtime settable max time for multi click
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME
+#define LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME 0
+#endif
+
+/**
  * \brief           Maximum number of allowed consecutive click events,
  *                  before structure gets reset to default value
  */
@@ -110,11 +146,29 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` runtime settable max consecutive clicks
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME 0
+#endif
+
+/**
  * \brief           Keep-alive event period, in milliseconds
  * 
  */
 #ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD
 #define LWBTN_CFG_TIME_KEEPALIVE_PERIOD 100
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` runtime settable keep alive period
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME
+#define LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME 0
 #endif
 
 /**

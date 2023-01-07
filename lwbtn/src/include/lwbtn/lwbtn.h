@@ -122,6 +122,25 @@ typedef struct lwbtn_btn {
     } click;                /*!< Click event structure */
 
     void* arg; /*!< User defined custom argument for callback function purpose */
+
+#if LWBTN_CFG_TIME_DEBOUNCE_RUNTIME || __DOXYGEN__
+    uint16_t time_debounce; /*!< Debounce time in milliseconds */
+#endif
+#if LWBTN_CFG_TIME_CLICK_MIN_RUNTIME || __DOXYGEN__
+    uint16_t time_click_pressed_min; /*!< Minimum pressed time for valid click event */
+#endif                               /* LWBTN_CFG_TIME_CLICK_MIN_RUNTIME || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_CLICK_MAX_RUNTIME || __DOXYGEN__
+    uint16_t time_click_pressed_max; /*!< Maximum pressed time for valid click event*/
+#endif                               /* LWBTN_CFG_TIME_CLICK_MAX_RUNTIME || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME || __DOXYGEN__
+    uint16_t time_click_multi_max; /*!< Maximum time between 2 clicks to be considered consecutive click */
+#endif                             /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME || __DOXYGEN__
+    uint16_t time_keepalive_period; /*!< Time in ms for periodic keep alive event */
+#endif                              /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME || __DOXYGEN__ */
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME || __DOXYGEN__
+    uint16_t max_consecutive; /*!< Max number of consecutive clicks */
+#endif                        /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME || __DOXYGEN__ */
 } lwbtn_btn_t;
 
 /**

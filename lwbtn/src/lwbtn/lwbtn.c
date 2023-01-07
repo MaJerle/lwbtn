@@ -43,12 +43,36 @@
     ((uint16_t)0x0002) /*!< Flag indicates that user wants to manually set button state.
                                                     Do not call "get_state" function */
 
-#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn)      LWBTN_CFG_TIME_DEBOUNCE
+#if LWBTN_CFG_TIME_DEBOUNCE_RUNTIME
+#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) ((btn)->time_debounce)
+#else
+#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) LWBTN_CFG_TIME_DEBOUNCE
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_RUNTIME */
+#if LWBTN_CFG_TIME_CLICK_MIN_RUNTIME
+#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) ((btn)->time_click_pressed_min)
+#else
 #define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) LWBTN_CFG_TIME_CLICK_MIN
+#endif /* LWBTN_CFG_TIME_CLICK_MIN_RUNTIME */
+#if LWBTN_CFG_TIME_CLICK_MAX_RUNTIME
+#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) ((btn)->time_click_pressed_max)
+#else
 #define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) LWBTN_CFG_TIME_CLICK_MAX
-#define LWBTN_TIME_CLICK_MAX_MULTI(btn)       LWBTN_CFG_TIME_CLICK_MULTI_MAX
-#define LWBTN_TIME_KEEPALIVE_PERIOD(btn)      LWBTN_CFG_TIME_KEEPALIVE_PERIOD
-#define LWBTN_CLICK_MAX_CONSECUTIVE(btn)      LWBTN_CFG_CLICK_MAX_CONSECUTIVE
+#endif /* LWBTN_CFG_TIME_CLICK_MAX_RUNTIME */
+#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME
+#define LWBTN_TIME_CLICK_MAX_MULTI(btn) ((btn)->time_click_multi_max)
+#else
+#define LWBTN_TIME_CLICK_MAX_MULTI(btn) LWBTN_CFG_TIME_CLICK_MULTI_MAX
+#endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME */
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME
+#define LWBTN_TIME_KEEPALIVE_PERIOD(btn) ((btn)->time_keepalive_period)
+#else
+#define LWBTN_TIME_KEEPALIVE_PERIOD(btn) LWBTN_CFG_TIME_KEEPALIVE_PERIOD
+#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME */
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME
+#define LWBTN_CLICK_MAX_CONSECUTIVE(btn) ((btn)->max_consecutive)
+#else
+#define LWBTN_CLICK_MAX_CONSECUTIVE(btn) LWBTN_CFG_CLICK_MAX_CONSECUTIVE
+#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME */
 
 /* Get button state */
 #if LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK
@@ -260,6 +284,28 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
 #else
     (void)get_state_fn; /* May be unused */
 #endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL */
+
+    for (size_t i = 0; i < btns_cnt; ++i) {
+#if LWBTN_CFG_TIME_DEBOUNCE_RUNTIME
+        btns[i].time_debounce = LWBTN_CFG_TIME_DEBOUNCE;
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_RUNTIME */
+#if LWBTN_CFG_TIME_CLICK_MIN_RUNTIME
+        btns[i].time_click_pressed_min = LWBTN_CFG_TIME_CLICK_MIN;
+#endif /* LWBTN_CFG_TIME_CLICK_MIN_RUNTIME */
+#if LWBTN_CFG_TIME_CLICK_MAX_RUNTIME
+        btns[i].time_click_pressed_max = LWBTN_CFG_TIME_CLICK_MAX;
+#endif /* LWBTN_CFG_TIME_CLICK_MAX_RUNTIME */
+#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME
+        btns[i].time_click_multi_max = LWBTN_CFG_TIME_CLICK_MULTI_MAX;
+#endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME */
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME
+        btns[i].time_keepalive_period = LWBTN_CFG_TIME_KEEPALIVE_PERIOD;
+#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME */
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME
+        btns[i].max_consecutive = LWBTN_CFG_CLICK_MAX_CONSECUTIVE;
+#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME */
+    }
+
     return 1;
 }
 
