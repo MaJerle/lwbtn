@@ -1,6 +1,6 @@
 {
     "name": "LwBTN",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Lightweight button handler for embedded systems",
     "keywords": "lwbtn, button, input, manager, btn, lightweight, embedded",
     "repository": {
