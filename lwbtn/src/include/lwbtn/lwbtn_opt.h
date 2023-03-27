@@ -62,21 +62,58 @@ extern "C" {
 #endif
 
 /**
- * \brief           Minimum debounce time in units of milliseconds
+ * \brief           Minimum debounce time for press event in units of milliseconds
  * 
- * This is the time input shall have stable level to detect valid *onpress* event
+ * This is the time when the input shall have stable active level to detect valid *onpress* event.
+ * 
+ * This is used to detect initial debounce when button/input is being pressed by the user.
+ * 
+ * When value is set to `> 0`, input must be in active state for at least
+ * minimum milliseconds time, before valid *onpress* event is detected
  */
-#ifndef LWBTN_CFG_TIME_DEBOUNCE
-#define LWBTN_CFG_TIME_DEBOUNCE 20
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_PRESS
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS 20
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` runtime settable time debounce
+ * \brief           Enables `1` or disables `0` dynamic settable time debounce
  * 
- * When enabled, additional field is added to button structure
+ * When enabled, additional field is added to button structure to allow
+ * each button setting its very own debounce time for press event.
+ * 
+ * If not used, \ref LWBTN_CFG_TIME_DEBOUNCE_PRESS is used as default
+ * debouncing configuration
  */
-#ifndef LWBTN_CFG_TIME_DEBOUNCE_RUNTIME
-#define LWBTN_CFG_TIME_DEBOUNCE_RUNTIME 0
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC 0
+#endif
+
+/**
+ * \brief           Minimum debounce time for release event in units of milliseconds
+ * 
+ * This is the time when the input shall have stable released level to detect valid *onrelease* event.
+ * 
+ * This setting can be useful if application wants to protect against
+ * unwanted glitches on the line when input is considered "active".
+ * 
+ * When value is set to `> 0`, input must be in inactive low for at least
+ * minimum milliseconds time, before valid *onrelease* event is detected
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_RELEASE
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 0
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` dynamic settable time debounce for release event
+ * 
+ * When enabled, additional field is added to button structure to allow
+ * each button setting its very own debounce time for release event.
+ * 
+ * If not used, \ref LWBTN_CFG_TIME_DEBOUNCE_RELEASE is used as default
+ * debouncing configuration
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC 0
 #endif
 
 /**
@@ -90,12 +127,12 @@ extern "C" {
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` runtime settable min time for click
+ * \brief           Enables `1` or disables `0` dynamic settable min time for click
  * 
  * When enabled, additional field is added to button structure
  */
-#ifndef LWBTN_CFG_TIME_CLICK_MIN_RUNTIME
-#define LWBTN_CFG_TIME_CLICK_MIN_RUNTIME 0
+#ifndef LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
+#define LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC 0
 #endif
 
 /**
@@ -109,12 +146,12 @@ extern "C" {
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` runtime settable max time for click
+ * \brief           Enables `1` or disables `0` dynamic settable max time for click
  * 
  * When enabled, additional field is added to button structure
  */
-#ifndef LWBTN_CFG_TIME_CLICK_MAX_RUNTIME
-#define LWBTN_CFG_TIME_CLICK_MAX_RUNTIME 0
+#ifndef LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
+#define LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC 0
 #endif
 
 /**
@@ -129,12 +166,12 @@ extern "C" {
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` runtime settable max time for multi click
+ * \brief           Enables `1` or disables `0` dynamic settable max time for multi click
  * 
  * When enabled, additional field is added to button structure
  */
-#ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME
-#define LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME 0
+#ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
+#define LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC 0
 #endif
 
 /**
@@ -146,12 +183,12 @@ extern "C" {
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` runtime settable max consecutive clicks
+ * \brief           Enables `1` or disables `0` dynamic settable max consecutive clicks
  * 
  * When enabled, additional field is added to button structure
  */
-#ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME
-#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME 0
+#ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC 0
 #endif
 
 /**
@@ -163,12 +200,12 @@ extern "C" {
 #endif
 
 /**
- * \brief           Enables `1` or disables `0` runtime settable keep alive period
+ * \brief           Enables `1` or disables `0` dynamic settable keep alive period
  * 
  * When enabled, additional field is added to button structure
  */
-#ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME
-#define LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME 0
+#ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
+#define LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC 0
 #endif
 
 /**

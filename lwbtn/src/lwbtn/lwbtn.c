@@ -43,36 +43,43 @@
     ((uint16_t)0x0002) /*!< Flag indicates that user wants to manually set button state.
                                                     Do not call "get_state" function */
 
-#if LWBTN_CFG_TIME_DEBOUNCE_RUNTIME
-#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) ((btn)->time_debounce)
+#if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
+#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) (uint32_t)((btn)->time_debounce)
 #else
-#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) LWBTN_CFG_TIME_DEBOUNCE
-#endif /* LWBTN_CFG_TIME_DEBOUNCE_RUNTIME */
-#if LWBTN_CFG_TIME_CLICK_MIN_RUNTIME
+#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) (uint32_t) LWBTN_CFG_TIME_DEBOUNCE_PRESS
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC */
+
+#if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
+#define LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn) (uint32_t)((btn)->time_debounce_release)
+#else
+#define LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn) (uint32_t) LWBTN_CFG_TIME_DEBOUNCE_RELEASE
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC */
+
+#if LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
 #define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) ((btn)->time_click_pressed_min)
 #else
 #define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) LWBTN_CFG_TIME_CLICK_MIN
-#endif /* LWBTN_CFG_TIME_CLICK_MIN_RUNTIME */
-#if LWBTN_CFG_TIME_CLICK_MAX_RUNTIME
+#endif /* LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC */
+#if LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
 #define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) ((btn)->time_click_pressed_max)
 #else
 #define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) LWBTN_CFG_TIME_CLICK_MAX
-#endif /* LWBTN_CFG_TIME_CLICK_MAX_RUNTIME */
-#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME
+#endif /* LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC */
+#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
 #define LWBTN_TIME_CLICK_MAX_MULTI(btn) ((btn)->time_click_multi_max)
 #else
 #define LWBTN_TIME_CLICK_MAX_MULTI(btn) LWBTN_CFG_TIME_CLICK_MULTI_MAX
-#endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME */
-#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME
+#endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC */
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
 #define LWBTN_TIME_KEEPALIVE_PERIOD(btn) ((btn)->time_keepalive_period)
 #else
 #define LWBTN_TIME_KEEPALIVE_PERIOD(btn) LWBTN_CFG_TIME_KEEPALIVE_PERIOD
-#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME */
-#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME
+#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC */
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
 #define LWBTN_CLICK_MAX_CONSECUTIVE(btn) ((btn)->max_consecutive)
 #else
 #define LWBTN_CLICK_MAX_CONSECUTIVE(btn) LWBTN_CFG_CLICK_MAX_CONSECUTIVE
-#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME */
+#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC */
 
 /* Get button state */
 #if LWBTN_CFG_GET_STATE_MODE == LWBTN_GET_STATE_MODE_CALLBACK
@@ -104,23 +111,89 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
     /* Get button state */
     new_state = LWBTN_BTN_GET_STATE(lwobj, btn);
 
-    /*
-     * Button state has changed
-     */
+    /* Button state has just changed */
     if (new_state != btn->old_state) {
-        /*
-         * Button just became inactive
+        btn->time_state_change = mstime;
+    }
+
+    /* Button is still pressed */
+    else if (new_state) {
+        /* 
+         * Handle debounce and send on-press event
          *
-         * - Handle on-release event
-         * - Handle on-click event
+         * This is when we detect valid press
          */
-        if (!new_state) {
+        if (!(btn->flags & LWBTN_FLAG_ONPRESS_SENT)) {
             /*
-             * We only need to react if on-press event has even been started.
+             * Run if statement when:
              *
-             * Do nothing if that was not the case
+             * - Runtime mode is enabled -> user sets its own config for debounce
+             * - Config debounce time for press is more than `0`
              */
-            if (btn->flags & LWBTN_FLAG_ONPRESS_SENT) {
+#if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_PRESS > 0
+            if ((mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(btn))
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_PRESS> 0 */
+            {
+#if !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
+                /*
+                 * Depending on the configuration,
+                 * this part will send on-click event just before the next on-press release,
+                 * if maximum number of consecutive clicks has been reached.
+                 */
+                if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
+                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                    btn->click.cnt = 0;
+                }
+#endif /* !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
+
+                /* Start with new on-press */
+                btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
+                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONPRESS);
+
+                btn->time_change = mstime; /* Button state has now changed */
+#if LWBTN_CFG_USE_KEEPALIVE
+                /* Set keep alive time */
+                btn->keepalive.last_time = mstime;
+                btn->keepalive.last_time = mstime;
+                btn->keepalive.cnt = 0;
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+            }
+        }
+
+        /*
+         * Handle keep alive, but only if on-press event has been sent
+         *
+         * Keep alive is sent when valid press is being detected
+         */
+        else {
+#if LWBTN_CFG_USE_KEEPALIVE
+            if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
+                btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
+                ++btn->keepalive.cnt;
+                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
+            }
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+        }
+    }
+
+    /* Button is still released */
+    else {
+        /*
+         * We only need to react if on-press event has even been started.
+         *
+         * Do nothing if that was not the case
+         */
+        if (btn->flags & LWBTN_FLAG_ONPRESS_SENT) {
+            /*
+             * Run if statement when:
+             *
+             * - Runtime mode is enabled -> user sets its own config for debounce
+             * - Config debounce time for release is more than `0`
+             */
+#if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_RELEASE > 0
+            if ((mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn))
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_RELEASE > 0 */
+            {
                 /* Handle on-release event */
                 btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONRELEASE);
@@ -162,90 +235,23 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                     lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
-#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
+#endif                                     /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
+                btn->time_change = mstime; /* Button state has now changed */
             }
-        }
-
-        /*
-         * Button just pressed
-         */
-        else {
-            /* Do nothing - things are handled after debounce period */
-        }
-        btn->time_change = mstime;
-#if LWBTN_CFG_USE_KEEPALIVE
-        btn->keepalive.last_time = mstime;
-        btn->keepalive.cnt = 0;
-#endif /* LWBTN_CFG_USE_KEEPALIVE */
-    }
-
-    /*
-     * Button is still pressed
-     */
-    else if (new_state) {
-        /* 
-         * Handle debounce and send on-press event
-         *
-         * This is when we detect valid press
-         */
-        if (!(btn->flags & LWBTN_FLAG_ONPRESS_SENT)) {
-            /* Check minimum stable time */
-            if ((mstime - btn->time_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(btn)) {
-#if !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
-                /*
-                 * Depending on the configuration,
-                 * this part will send on-click event just before the next on-press release,
-                 * if maximum number of consecutive clicks has been reached.
-                 */
-                if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
+        } else {
+            /* 
+             * Based on te configuration, this part of the code
+             * will send on-click event after certain timeout.
+             * 
+             * This feature is useful if users prefers multi-click feature
+             * that is reported only after last click event happened,
+             * including number of clicks made by user
+             */
+            if (btn->click.cnt > 0) {
+                if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
                     lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
-#endif /* !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
-
-                /* Start with new on-press */
-                btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
-                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONPRESS);
-
-#if LWBTN_CFG_USE_KEEPALIVE
-                /* Set keep alive time */
-                btn->keepalive.last_time = mstime;
-#endif /* LWBTN_CFG_USE_KEEPALIVE */
-            }
-        }
-
-        /*
-         * Handle keep alive, but only if on-press event has been sent
-         *
-         * Keep alive is sent when valid press is being detected
-         */
-        else {
-#if LWBTN_CFG_USE_KEEPALIVE
-            if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
-                btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
-                ++btn->keepalive.cnt;
-                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
-            }
-#endif /* LWBTN_CFG_USE_KEEPALIVE */
-        }
-    }
-
-    /*
-     * Button is still released
-     */
-    else {
-        /* 
-         * Based on te configuration, this part of the code
-         * will send on-click event after certain timeout.
-         * 
-         * This feature is useful if users prefers multi-click feature
-         * that is reported only after last click event happened,
-         * including number of clicks made by user
-         */
-        if (btn->click.cnt > 0) {
-            if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
-                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
-                btn->click.cnt = 0;
             }
         }
     }
@@ -286,24 +292,27 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
 #endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL */
 
     for (size_t i = 0; i < btns_cnt; ++i) {
-#if LWBTN_CFG_TIME_DEBOUNCE_RUNTIME
-        btns[i].time_debounce = LWBTN_CFG_TIME_DEBOUNCE;
-#endif /* LWBTN_CFG_TIME_DEBOUNCE_RUNTIME */
-#if LWBTN_CFG_TIME_CLICK_MIN_RUNTIME
+#if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
+        btns[i].time_debounce = LWBTN_CFG_TIME_DEBOUNCE_PRESS;
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC */
+#if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
+        btns[i].time_debounce_release = LWBTN_CFG_TIME_DEBOUNCE_RELEASE;
+#endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC */
+#if LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
         btns[i].time_click_pressed_min = LWBTN_CFG_TIME_CLICK_MIN;
-#endif /* LWBTN_CFG_TIME_CLICK_MIN_RUNTIME */
-#if LWBTN_CFG_TIME_CLICK_MAX_RUNTIME
+#endif /* LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC */
+#if LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
         btns[i].time_click_pressed_max = LWBTN_CFG_TIME_CLICK_MAX;
-#endif /* LWBTN_CFG_TIME_CLICK_MAX_RUNTIME */
-#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME
+#endif /* LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC */
+#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
         btns[i].time_click_multi_max = LWBTN_CFG_TIME_CLICK_MULTI_MAX;
-#endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME */
-#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME
+#endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC */
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
         btns[i].time_keepalive_period = LWBTN_CFG_TIME_KEEPALIVE_PERIOD;
-#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME */
-#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME
+#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC */
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
         btns[i].max_consecutive = LWBTN_CFG_CLICK_MAX_CONSECUTIVE;
-#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME */
+#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC */
     }
 
     return 1;

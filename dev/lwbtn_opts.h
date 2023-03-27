@@ -41,4 +41,14 @@
  * copy & replace here settings you want to change values
  */
 
+/* Press config */
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS 20 /* No debounce for press event */
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC                                                                          \
+    1 /* Debounce for press event is statically set with macro -> no dynamic config */
+
+/* Release config */
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 20 /* No debounce for release event */
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC                                                                        \
+    1 /* Debounce for release event is statically set with macro -> no dynamic config */
+
 #endif /* LWBTN_HDR_OPTS_H */

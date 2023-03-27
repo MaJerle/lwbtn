@@ -102,11 +102,12 @@ typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn
 typedef struct lwbtn_btn {
     uint16_t flags; /*!< Private button flags management */
 #if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
-    uint8_t curr_state;   /*!< Current button state to be processed. It is used 
+    uint8_t curr_state;         /*!< Current button state to be processed. It is used 
                                 to keep track when application manually sets the button state */
-#endif                    /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
-    uint8_t old_state;    /*!< Old button state - `1` means active, `0` means inactive */
-    uint32_t time_change; /*!< Time in ms when button state got changed last time */
+#endif                          /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
+    uint8_t old_state;          /*!< Old button state - `1` means active, `0` means inactive */
+    uint32_t time_change;       /*!< Time in ms when button state got changed last time after valid debounce */
+    uint32_t time_state_change; /*!< Time in ms when button state got changed last time */
 
 #if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
     struct {
@@ -123,24 +124,27 @@ typedef struct lwbtn_btn {
 
     void* arg; /*!< User defined custom argument for callback function purpose */
 
-#if LWBTN_CFG_TIME_DEBOUNCE_RUNTIME || __DOXYGEN__
+#if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || __DOXYGEN__
     uint16_t time_debounce; /*!< Debounce time in milliseconds */
-#endif
-#if LWBTN_CFG_TIME_CLICK_MIN_RUNTIME || __DOXYGEN__
+#endif                      /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || __DOXYGEN__
+    uint16_t time_debounce_release; /*!< Debounce time in milliseconds for release event  */
+#endif                              /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE */
+#if LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC || __DOXYGEN__
     uint16_t time_click_pressed_min; /*!< Minimum pressed time for valid click event */
-#endif                               /* LWBTN_CFG_TIME_CLICK_MIN_RUNTIME || __DOXYGEN__ */
-#if LWBTN_CFG_TIME_CLICK_MAX_RUNTIME || __DOXYGEN__
+#endif                               /* LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC || __DOXYGEN__
     uint16_t time_click_pressed_max; /*!< Maximum pressed time for valid click event*/
-#endif                               /* LWBTN_CFG_TIME_CLICK_MAX_RUNTIME || __DOXYGEN__ */
-#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME || __DOXYGEN__
+#endif                               /* LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC || __DOXYGEN__
     uint16_t time_click_multi_max; /*!< Maximum time between 2 clicks to be considered consecutive click */
-#endif                             /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_RUNTIME || __DOXYGEN__ */
-#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME || __DOXYGEN__
+#endif                             /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC || __DOXYGEN__ */
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__
     uint16_t time_keepalive_period; /*!< Time in ms for periodic keep alive event */
-#endif                              /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_RUNTIME || __DOXYGEN__ */
-#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME || __DOXYGEN__
+#endif                              /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__ */
+#if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC || __DOXYGEN__
     uint16_t max_consecutive; /*!< Max number of consecutive clicks */
-#endif                        /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_RUNTIME || __DOXYGEN__ */
+#endif                        /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC || __DOXYGEN__ */
 } lwbtn_btn_t;
 
 /**
