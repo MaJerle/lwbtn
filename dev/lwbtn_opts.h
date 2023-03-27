@@ -4,7 +4,7 @@
  */
 
 /*
- * Copyright (c) 2022 Tilen MAJERLE
+ * Copyright (c) 2023 Tilen MAJERLE
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.1
+ * Version:         v0.0.2
  */
 #ifndef LWBTN_HDR_OPTS_H
 #define LWBTN_HDR_OPTS_H
@@ -40,5 +40,15 @@
  * Open "include/lwbtn/lwbtn_opt.h" and
  * copy & replace here settings you want to change values
  */
+
+/* Press config */
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS 20 /* No debounce for press event */
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC                                                                          \
+    1 /* Debounce for press event is statically set with macro -> no dynamic config */
+
+/* Release config */
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 20 /* No debounce for release event */
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC                                                                        \
+    1 /* Debounce for release event is statically set with macro -> no dynamic config */
 
 #endif /* LWBTN_HDR_OPTS_H */

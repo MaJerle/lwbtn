@@ -12,6 +12,7 @@ else()
     # Add key executable block
     target_sources(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/dev/main.c
+        ${CMAKE_CURRENT_LIST_DIR}/examples/example_win32.c
     )
 
     # Add key include paths

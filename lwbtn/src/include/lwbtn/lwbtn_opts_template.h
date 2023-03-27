@@ -4,7 +4,7 @@
  */
 
 /*
- * Copyright (c) 2022 Tilen MAJERLE
+ * Copyright (c) 2023 Tilen MAJERLE
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,10 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.1
+ * Version:         v0.0.2
  */
-#ifndef LWBTN_HDR_OPTS_H
-#define LWBTN_HDR_OPTS_H
+#ifndef LWBTN_OPTS_HDR_H
+#define LWBTN_OPTS_HDR_H
 
 /* Rename this file to "lwbtn_opts.h" for your application */
 
@@ -41,4 +41,4 @@
  * copy & replace here settings you want to change values
  */
 
-#endif /* LWBTN_HDR_OPTS_H */
+#endif /* LWBTN_OPTS_HDR_H */

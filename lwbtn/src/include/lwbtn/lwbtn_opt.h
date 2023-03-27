@@ -4,7 +4,7 @@
  */
 
 /*
- * Copyright (c) 2022 Tilen MAJERLE
+ * Copyright (c) 2023 Tilen MAJERLE
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,10 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.1
+ * Version:         v0.0.2
  */
-#ifndef LWBTN_HDR_OPT_H
-#define LWBTN_HDR_OPT_H
+#ifndef LWBTN_OPT_HDR_H
+#define LWBTN_OPT_HDR_H
 
 /* Uncomment to ignore user options (or set macro in compiler flags) */
 /* #define LWBTN_IGNORE_USER_OPTS */
@@ -53,12 +53,67 @@ extern "C" {
  */
 
 /**
- * \brief           Minimum debounce time in units of milliseconds
+ * \brief           Enables `1` or disables `0` periodic keep alive events.
  * 
- * This is the time input shall have stable level to detect valid *onpress* event
+ * Default keep alive period is set with \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD macro
  */
-#ifndef LWBTN_CFG_TIME_DEBOUNCE
-#define LWBTN_CFG_TIME_DEBOUNCE 20
+#ifndef LWBTN_CFG_USE_KEEPALIVE
+#define LWBTN_CFG_USE_KEEPALIVE 1
+#endif
+
+/**
+ * \brief           Minimum debounce time for press event in units of milliseconds
+ * 
+ * This is the time when the input shall have stable active level to detect valid *onpress* event.
+ * 
+ * This is used to detect initial debounce when button/input is being pressed by the user.
+ * 
+ * When value is set to `> 0`, input must be in active state for at least
+ * minimum milliseconds time, before valid *onpress* event is detected
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_PRESS
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS 20
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` dynamic settable time debounce
+ * 
+ * When enabled, additional field is added to button structure to allow
+ * each button setting its very own debounce time for press event.
+ * 
+ * If not used, \ref LWBTN_CFG_TIME_DEBOUNCE_PRESS is used as default
+ * debouncing configuration
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC 0
+#endif
+
+/**
+ * \brief           Minimum debounce time for release event in units of milliseconds
+ * 
+ * This is the time when the input shall have stable released level to detect valid *onrelease* event.
+ * 
+ * This setting can be useful if application wants to protect against
+ * unwanted glitches on the line when input is considered "active".
+ * 
+ * When value is set to `> 0`, input must be in inactive low for at least
+ * minimum milliseconds time, before valid *onrelease* event is detected
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_RELEASE
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 0
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` dynamic settable time debounce for release event
+ * 
+ * When enabled, additional field is added to button structure to allow
+ * each button setting its very own debounce time for release event.
+ * 
+ * If not used, \ref LWBTN_CFG_TIME_DEBOUNCE_RELEASE is used as default
+ * debouncing configuration
+ */
+#ifndef LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC 0
 #endif
 
 /**
@@ -72,6 +127,15 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` dynamic settable min time for click
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
+#define LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC 0
+#endif
+
+/**
  * \brief           Maximum active input time for valid click event, in milliseconds
  * 
  * Input shall be pressed at most this amount of time to still trigger valid click.
@@ -79,6 +143,15 @@ extern "C" {
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MAX
 #define LWBTN_CFG_TIME_CLICK_MAX 300
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` dynamic settable max time for click
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
+#define LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC 0
 #endif
 
 /**
@@ -93,11 +166,29 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` dynamic settable max time for multi click
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
+#define LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC 0
+#endif
+
+/**
  * \brief           Maximum number of allowed consecutive click events,
  *                  before structure gets reset to default value
  */
 #ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE
-#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 1
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 3
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` dynamic settable max consecutive clicks
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
+#define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC 0
 #endif
 
 /**
@@ -106,6 +197,15 @@ extern "C" {
  */
 #ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD
 #define LWBTN_CFG_TIME_KEEPALIVE_PERIOD 100
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` dynamic settable keep alive period
+ * 
+ * When enabled, additional field is added to button structure
+ */
+#ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
+#define LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC 0
 #endif
 
 /**
@@ -122,6 +222,28 @@ extern "C" {
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY 1
 #endif
 
+#define LWBTN_GET_STATE_MODE_CALLBACK           0 /*!< Callback-only state mode */
+#define LWBTN_GET_STATE_MODE_MANUAL             1 /*!< Manual-only state mode */
+#define LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL 2 /*!< Callback or manual state mode */
+
+/**
+ * \brief           Sets the mode how new button state is acquired.
+ * 
+ * Different modes are availale, set with the level number:
+ * 
+ * - `LWBTN_GET_STATE_MODE_CALLBACK`: State of the button is checked through *get state* callback function (default mode, legacy)
+ * - `LWBTN_GET_STATE_MODE_MANUAL`: Only manual state set is enabled. Application must set the button state with API functions.
+ *          Callback API is not used.
+ * - `LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL`: State of the button is checked through *get state* callback function (by default).
+ *          It enables API to manually set the state with approapriate function call.
+ *          Button state is checked with the callback at least until manual state API function is called.
+ * 
+ *      This allows multiple build configurations for various button types
+ */
+#ifndef LWBTN_CFG_GET_STATE_MODE
+#define LWBTN_CFG_GET_STATE_MODE LWBTN_GET_STATE_MODE_CALLBACK
+#endif
+
 /**
  * \}
  */
@@ -130,4 +252,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-#endif /* LWBTN_HDR_OPT_H */
+#endif /* LWBTN_OPT_HDR_H */

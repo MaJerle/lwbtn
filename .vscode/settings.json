@@ -6,7 +6,9 @@
         "string.h": "c",
         "lwevt_opt.h": "c",
         "lwbtn.h": "c",
-        "lwbtn_opt.h": "c"
+        "lwbtn_opt.h": "c",
+        "lwbtn_opts.h": "c",
+        "compare": "c"
     },
     "esbonio.sphinx.confDir": ""
 }

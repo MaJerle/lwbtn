@@ -19,6 +19,13 @@ User must define buttons array and pass it to the library. Next to that, ``2`` m
 
 User shall later periodically call processing function with current system time as simple parameter and get ready to receive various events.
 
+A simple example for win32 is below:
+
+.. literalinclude:: ../../examples/example_win32.c
+    :language: c
+    :linenos:
+    :caption: Win32 example code
+
 Input events
 ^^^^^^^^^^^^
 
