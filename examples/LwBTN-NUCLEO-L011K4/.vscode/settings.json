@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "lwbtn.h": "c",
+        "lwbtn_opt.h": "c",
+        "lwbtn_opts.h": "c"
+    }
+}
