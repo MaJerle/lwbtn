@@ -188,6 +188,26 @@ Demo log text, with fast pressing of button, and events reported after every **o
 
     Multi-click events disabled with cp == 1
 
+Multi-click special case
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+There is currently a special case in the library when dealing with multiclicks.
+Configuration option :c:macro:`LWBTN_CFG_TIME_CLICK_MULTI_MAX` defines the maximum time between ``2`` consecutive clicks (consecutive **onrelease** events).
+Timing starts with **previous** valid click. If next click event starts (that starts with **onpress** event) earlier than maximum time but ends later than maximum, then
+new click is not counted as *consecutive* click to previous one.
+
+As such, library will throw ``2`` **click** events to the user.
+First one immediately on second **onrelease** event (to take care of first **onpress** and **onrelease** event group) and second one after defined user timeout.
+
+.. note::
+    Colors on picture below indicate events that relate to each other, indicated as **green** or **blue** rectangles
+
+.. figure:: ../static/images/btn-events-click-multi-special-case.svg
+    :align: center
+    :alt: Special case for multi click when timing overlaps
+
+    Special case for multi click when timing overlaps. Orange vertical lines indicate period for valid consecutive clicks.
+
 Keep alive event
 ^^^^^^^^^^^^^^^^
 

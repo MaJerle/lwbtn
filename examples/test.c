@@ -20,9 +20,20 @@ typedef struct {
     uint8_t conseq_clicks; /*!< Number of consecutive clicks detected */
 } btn_test_evt_t;
 
+/* Max number of ms to demonstrate */
+#define MAX_TIME_MS 5000
+
+/* Tests to run */
+#define TEST1       1
+#define TEST2       1
+#define TEST3       1
+#define TEST4       1
+#define TEST5       1
+
 /* List of used buttons -> test case */
 static lwbtn_btn_t btns[1];
 static volatile uint32_t time_current;
+static volatile uint8_t is_pressed = 0, is_click = 0;
 
 /* Set button state -> used for test purposes */
 #define BTN_STATE(_state_, _duration_)                                                                                 \
@@ -40,11 +51,6 @@ static volatile uint32_t time_current;
 /* On-Click event */
 #define BTN_EVENT_KEEPALIVE(_keepalive_cnt_)                                                                           \
     { .evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_) }
-
-#define TEST1 0
-#define TEST2 0
-#define TEST3 0
-#define TEST4 1
 
 /*
  * Simulate click event
@@ -68,6 +74,7 @@ static const btn_test_time_t test_sequence[] = {
      */
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX + 1),
+    BTN_STATE(0, 100), /* Keep low before next test */
 #endif
 
 #if TEST2
@@ -83,6 +90,7 @@ static const btn_test_time_t test_sequence[] = {
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX + 1),
+    BTN_STATE(0, 100), /* Keep low before next test */
 #endif
 
 #if TEST3
@@ -97,6 +105,7 @@ static const btn_test_time_t test_sequence[] = {
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
+    BTN_STATE(0, 100), /* Keep low before next test */
 #endif
 
 #if TEST4
@@ -109,9 +118,34 @@ static const btn_test_time_t test_sequence[] = {
      * with "2" consecutive clicks in the report info
      */
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
-    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX - 1),
+    /* Hold button in release state for time that is max for 2 clicks - time that we will
+        indicate in the next press state -> this is the frequency between detected events */
+    BTN_STATE(0, LWBTN_CFG_TIME_CLICK_MULTI_MAX
+                     /* Decrease by active time in next step */
+                     - (LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN) - 1),
+    /* Active time */
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX + 1),
+    BTN_STATE(0, 100), /* Keep low before next test */
+#endif
+
+#if TEST5
+    /*
+     * Test 5:
+     *
+     * This test shows how to handle case when 2 clicks are being executed,
+     * but time between 2 release events is larger than maximum
+     * allowed time for consecutive clicks.
+     * 
+     * In this case, 2 onclick events are sent,
+     * both with consecutive clicks counter set to 1
+     */
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX
+                     - (LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN)),
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX + 1),
+    BTN_STATE(0, 100), /* Keep low before next test */
 #endif
 };
 
@@ -151,6 +185,18 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONPRESS(),
     BTN_EVENT_ONRELEASE(),
     BTN_EVENT_ONCLICK(2),
+#endif
+
+#if TEST5
+    /* Test 5 */
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_ONRELEASE(),
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_ONRELEASE(),
+    /* This one is to handle click for first sequence */
+    BTN_EVENT_ONCLICK(1),
+    /* This one is to handle click for second sequence */
+    BTN_EVENT_ONCLICK(1),
 #endif
 };
 
@@ -205,6 +251,9 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     keepalive_cnt = btn->keepalive.cnt;
 #endif
 
+    /* Event type must match */
+    test_errors += test_evt_data->evt != evt;
+
     /* Get event string */
     if (0) {
 #if LWBTN_CFG_USE_KEEPALIVE
@@ -217,6 +266,7 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     } else if (evt == LWBTN_EVT_ONPRESS) {
         s = "  ONPRESS";
         color = FOREGROUND_GREEN;
+        is_pressed = 1;
     } else if (evt == LWBTN_EVT_ONRELEASE) {
         s = "ONRELEASE";
         color = FOREGROUND_BLUE;
@@ -252,7 +302,7 @@ test_win32(void) {
     lwbtn_init_ex(NULL, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
 
     /* Counter simulates ms tick */
-    for (size_t i = 0; i < 3000; ++i) {
+    for (size_t i = 0; i < MAX_TIME_MS; ++i) {
         time_current = i; /* Set current time used in callback */
         lwbtn_process(i); /* Now run processing */
     }
