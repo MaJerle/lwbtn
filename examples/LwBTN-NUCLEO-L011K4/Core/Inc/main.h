@@ -57,10 +57,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BTN_Pin       GPIO_PIN_12
-#define BTN_GPIO_Port GPIOA
-#define OUT_Pin       GPIO_PIN_3
-#define OUT_GPIO_Port GPIOB
+#define BTN_Pin             GPIO_PIN_12
+#define BTN_GPIO_Port       GPIOA
+#define OUT_Pin             GPIO_PIN_3
+#define OUT_GPIO_Port       GPIOB
+#define OUT_CLICK_Pin       GPIO_PIN_4
+#define OUT_CLICK_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

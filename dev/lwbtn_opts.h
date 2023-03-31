@@ -41,10 +41,4 @@
  * copy & replace here settings you want to change values
  */
 
-/* Press config */
-#define LWBTN_CFG_TIME_DEBOUNCE_PRESS   20 /* No debounce for press event */
-
-/* Release config */
-#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 20 /* No debounce for release event */
-
 #endif /* LWBTN_HDR_OPTS_H */

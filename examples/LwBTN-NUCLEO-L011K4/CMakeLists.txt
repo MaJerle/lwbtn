@@ -28,7 +28,10 @@ set(cpu_PARAMS
 )
 
 # Sources
-set(sources_SRCS)
+set(sources_SRCS
+    # Add test file
+    ${CMAKE_CURRENT_SOURCE_DIR}/../test.c
+)
 
 # Include directories for each compiler
 set(include_c_DIRS)
@@ -36,7 +39,10 @@ set(include_cxx_DIRS)
 set(include_asm_DIRS)
 
 # Symbols definition for each compiler
-set(symbols_c_SYMB)
+set(symbols_c_SYMB
+    "STM32" # Used for test macros
+    "RUN_TEST"# Defined to run the test
+)
 set(symbols_cxx_SYMB)
 set(symbols_asm_SYMB)
 
@@ -90,8 +96,8 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 target_link_libraries(${CMAKE_PROJECT_NAME} ${link_LIBS})
 
 # Add LwBTN library itself
-#add_subdirectory("../../lwbtn" lwbtn)
-#target_link_libraries(${CMAKE_PROJECT_NAME} lwbtn)
+add_subdirectory("../../lwbtn" lwbtn)
+target_link_libraries(${CMAKE_PROJECT_NAME} lwbtn)
 
 # Compiler options
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
