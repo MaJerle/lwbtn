@@ -40,7 +40,7 @@
 
 #define LWBTN_FLAG_ONPRESS_SENT ((uint16_t)0x0001) /*!< Flag indicates that on-press event has been sent */
 #define LWBTN_FLAG_MANUAL_STATE                                                                                        \
-    ((uint16_t)0x0002) /*!< Flag indicates that user wants to manually set button state.
+    ((uint16_t)0x0002)                             /*!< Flag indicates that user wants to manually set button state.
                                                     Do not call "get_state" function */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
@@ -153,7 +153,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                 /* Set keep alive time */
                 btn->keepalive.last_time = mstime;
                 btn->keepalive.cnt = 0;
-#endif /* LWBTN_CFG_USE_KEEPALIVE */
+#endif                                     /* LWBTN_CFG_USE_KEEPALIVE */
 
                 btn->time_change = mstime; /* Button state has now changed */
             }
@@ -166,7 +166,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
          */
         else {
 #if LWBTN_CFG_USE_KEEPALIVE
-            if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
+            while ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                 btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                 ++btn->keepalive.cnt;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
