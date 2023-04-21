@@ -34,7 +34,8 @@ typedef struct {
 #define TEST2       0
 #define TEST3       0
 #define TEST4       0
-#define TEST5       1
+#define TEST5       0
+#define TEST6       1
 
 /* List of used buttons -> test case */
 static lwbtn_btn_t btns[1];
@@ -153,6 +154,19 @@ static const btn_test_time_t test_sequence[] = {
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX + 1),
     BTN_STATE(0, 100), /* Keep low before next test */
 #endif
+
+#if TEST6
+    /*
+     * Test 6:
+     *
+     * Make a click event, followed by the longer press.
+     * Simulate "long press" w/ previous click, that has click counter set to 1
+     */
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN + 1000),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
+#endif
 };
 
 /* List of expected test events during different input states and their timings */
@@ -203,6 +217,24 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONCLICK(1),
     /* This one is to handle click for second sequence */
     BTN_EVENT_ONCLICK(1),
+#endif
+
+#if TEST6
+    /* Test 6 */
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_ONRELEASE(),
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_KEEPALIVE(1),
+    BTN_EVENT_KEEPALIVE(2),
+    BTN_EVENT_KEEPALIVE(3),
+    BTN_EVENT_KEEPALIVE(4),
+    BTN_EVENT_KEEPALIVE(5),
+    BTN_EVENT_KEEPALIVE(6),
+    BTN_EVENT_KEEPALIVE(7),
+    BTN_EVENT_KEEPALIVE(8),
+    BTN_EVENT_KEEPALIVE(9),
+    BTN_EVENT_KEEPALIVE(10),
+    BTN_EVENT_ONRELEASE(),
 #endif
 };
 
@@ -314,7 +346,7 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
         is_click = 1;
         HAL_GPIO_WritePin(OUT_CLICK_GPIO_Port, OUT_CLICK_Pin, GPIO_PIN_SET);
     }
-#endif /* defined(WIN32) */
+#endif             /* defined(WIN32) */
     (void)lw;
 }
 

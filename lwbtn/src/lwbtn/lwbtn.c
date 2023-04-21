@@ -230,9 +230,9 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                      * There was an on-release event, but timing
                      * for click event detection is outside allowed window.
                      * 
-                     * If user has some consecutive clicks from previous clicks,
-                     * these will be sent after the timeout window (and after the on-release event)
+                     * Reset clicks counter -> not valid sequence for click event.
                      */
+                    btn->click.cnt = 0;
                 }
 
 #if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
