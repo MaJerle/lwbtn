@@ -4,7 +4,7 @@
 
 ## Features
 
-* Written in ANSI C99
+* Written in C (C11)
 * Platform independent, requires user to provide millisecond timing source
 * No dynamic memory allocation
 * Callback driven event management
