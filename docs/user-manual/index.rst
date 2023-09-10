@@ -188,6 +188,26 @@ Demo log text, with fast pressing of button, and events reported after every **o
 
     Multi-click events disabled with cp == 1
 
+Multi-click special case
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+There is currently a special case in the library when dealing with multiclicks.
+Configuration option :c:macro:`LWBTN_CFG_TIME_CLICK_MULTI_MAX` defines the maximum time between ``2`` consecutive clicks (consecutive **onrelease** events).
+Timing starts with **previous** valid click. If next click event starts (that starts with **onpress** event) earlier than maximum time but ends later than maximum, then
+new click is not counted as *consecutive* click to previous one.
+
+As such, library will throw ``2`` **click** events to the user.
+First one immediately on second **onrelease** event (to take care of first **onpress** and **onrelease** event group) and second one after defined user timeout.
+
+.. note::
+    Colors on picture below indicate events that relate to each other, indicated as **green** or **blue** rectangles
+
+.. figure:: ../static/images/btn-events-click-multi-special-case.svg
+    :align: center
+    :alt: Special case for multi click when timing overlaps
+
+    Special case for multi click when timing overlaps. Orange vertical lines indicate period for valid consecutive clicks.
+
 Keep alive event
 ^^^^^^^^^^^^^^^^
 
@@ -207,3 +227,106 @@ Feature can be used to make a trigger at specific time if button is in active st
     :alt: Keep alive events when button is kept pressed
 
     Keep alive events when button is kept pressed
+
+Debounce
+^^^^^^^^
+
+Debouncing is a software mechanics to remove unwanted bouncing events introduced by the physical buttons.
+
+.. tip::
+    This chapter will not go into details about generic debouncing problem. 
+    Have a look at `Wikipedia post about Switches <https://en.wikipedia.org/wiki/Switch>`_.
+
+Library supports ``2`` separate debounce options:
+
+* **Debounce on press event**: This is almost always a must-have in the application, and helps to detect valid "press" event only once after the input is in stable active state for minimum time in a row.
+    
+    Press event debounce can only be disabled, if application can ensure stable transition from inactive to active state. This is usually done using capacitor and resistor next to the push button (this may not be the most optimized solution for contact longevity)
+
+* **Debounce on release event**: This is usually not necessary by most of the applications,
+
+    but can be used in harsh environments, where unwanted external noise could affect line and put it to inactive state for short period of time (while user holds button *down* in active state).
+
+.. note::
+    Configuration settings :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_PRESS` and :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_RELEASE` are used to set the debounce time in milliseconds.
+    When one of the values is set to ``0``, debounce feature for respective transition is not actived.
+
+.. tip::
+    Debounce time of around ``20ms`` is usually a good tradeoff between application reactivity to user events and debounce time required to stabilize the input.
+
+Debounce examples
+*****************
+
+Examples are demonstrated using `NUCLEO-L011K4 <https://www.st.com/en/evaluation-tools/nucleo-l011k4.html>`_ board. ``2`` GPIO pins are used, one in input config, second as output.
+
+* **Input pin (Blue)**: A raw input that acts as an user button. There is no hardware filtering. Pin is active when *low* and inactive when *high*.
+
+* **Output pin (Red)**: Output pin is software controlled. It goes *high* on *press* event and it goes *low* on *release* event. *Press* and *release* events are reported by the library.
+
+.. note:: 
+    Logic analyzer has been connected directly to the microcontroller pins.
+
+**Examples #1**
+
+* :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_PRESS` = ``20``
+* :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_RELEASE` = ``20``
+
+.. figure:: ../static/images/debounce-press-20ms.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 20ms debounce for press event
+
+    20ms debounce for press event. Press event is triggered only after input is stable in active state for minimum time.
+
+.. figure:: ../static/images/debounce-release-20ms.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 20ms debounce for release event
+
+    20ms debounce for release event. Release event is triggered only after input is stable in inactive state for minimum time.
+
+.. figure:: ../static/images/debounce-press-20ms-no-event.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 20ms debounce for press event - press event was not triggered
+
+    20ms debounce for press event - press event was not triggered - input was in stable active state for less than minimum debounce time (red line stays low).
+
+**Examples #2**
+
+* :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_PRESS` = ``20``
+* :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_RELEASE` = ``0`` - release debounce is disabled
+
+.. figure:: ../static/images/debounce-press-20ms-no-debounce-release.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 20ms debounce for press event - no debounce for release event
+
+    Press event is detected after initial debounce, while release event is detected immediately on button going to inactive state.
+
+**Examples #3**
+
+* :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_PRESS` = ``100``
+* :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_RELEASE` = ``100``
+
+.. figure:: ../static/images/debounce-press-100ms.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 100ms debounce for press event
+
+    100ms debounce for press event. Input bouncing is clearly visible on the diagram. Press event is triggered only after input is stable in active state for minimum time.
+
+.. figure:: ../static/images/debounce-release-100ms.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 100ms debounce for release event
+
+    100ms debounce for release event. Release event is triggered after input is in stable inactive state for at least release debounce time.
+
+.. figure:: ../static/images/debounce-release-100ms-noise-no-event.png
+    :align: center
+    :class: image-with-black-border
+    :alt: 100ms debounce for release event - noisy environment
+
+    Input is in *pressed* state (red is high). Blue is in released state for less that minimum stable debounce time, therefore no *release* event has been triggered.
+    This is clearly visible with the *red* line that is staying high for the whole time of the transient period.

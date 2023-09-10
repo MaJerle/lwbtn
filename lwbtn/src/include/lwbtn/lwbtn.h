@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.2
+ * Version:         v1.0.0
  */
 #ifndef LWBTN_HDR_H
 #define LWBTN_HDR_H
@@ -171,7 +171,7 @@ uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
  * \param[in]       btns: Array of buttons to process
  * \param[in]       btns_cnt: Number of buttons to process
  * \param[in]       get_state_fn: Pointer to function providing button state on demand.
- *                      Can be set to `NULL` if \ref LWBTN_CFG_FORCE_MANUAL_STATE_SET is enabled
+ *                      Can be set to `NULL` if \ref LWBTN_CFG_GET_STATE_MODE is NOT set to \ref LWBTN_GET_STATE_MODE_CALLBACK
  * \param[in]       evt_fn: Button event function callback
  * \sa              lwbtn_init_ex
  */

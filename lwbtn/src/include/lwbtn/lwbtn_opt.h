@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.2
+ * Version:         v1.0.0
  */
 #ifndef LWBTN_OPT_HDR_H
 #define LWBTN_OPT_HDR_H
@@ -66,10 +66,13 @@ extern "C" {
  * 
  * This is the time when the input shall have stable active level to detect valid *onpress* event.
  * 
- * This is used to detect initial debounce when button/input is being pressed by the user.
- * 
  * When value is set to `> 0`, input must be in active state for at least
- * minimum milliseconds time, before valid *onpress* event is detected
+ * minimum milliseconds time, before valid *onpress* event is detected.
+ * 
+ * \note            If value is set to `0`, debounce is not used and *press* event will be triggered
+ *                  immediately when input states goes to *inactive* state.
+ *  
+ *                  To be safe not using this feature, external logic must ensure stable transition at input level.
  */
 #ifndef LWBTN_CFG_TIME_DEBOUNCE_PRESS
 #define LWBTN_CFG_TIME_DEBOUNCE_PRESS 20
@@ -91,13 +94,16 @@ extern "C" {
 /**
  * \brief           Minimum debounce time for release event in units of milliseconds
  * 
- * This is the time when the input shall have stable released level to detect valid *onrelease* event.
+ * This is the time when the input shall have minimum stable released level to detect valid *onrelease* event.
  * 
  * This setting can be useful if application wants to protect against
  * unwanted glitches on the line when input is considered "active".
  * 
  * When value is set to `> 0`, input must be in inactive low for at least
  * minimum milliseconds time, before valid *onrelease* event is detected
+ * 
+ * \note            If value is set to `0`, debounce is not used and *release* event will be triggered
+ *                  immediately when input states goes to *inactive* state
  */
 #ifndef LWBTN_CFG_TIME_DEBOUNCE_RELEASE
 #define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 0
@@ -231,7 +237,7 @@ extern "C" {
  * 
  * Different modes are availale, set with the level number:
  * 
- * - `LWBTN_GET_STATE_MODE_CALLBACK`: State of the button is checked through *get state* callback function (default mode, legacy)
+ * - `LWBTN_GET_STATE_MODE_CALLBACK`: State of the button is checked through *get state* callback function
  * - `LWBTN_GET_STATE_MODE_MANUAL`: Only manual state set is enabled. Application must set the button state with API functions.
  *          Callback API is not used.
  * - `LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL`: State of the button is checked through *get state* callback function (by default).

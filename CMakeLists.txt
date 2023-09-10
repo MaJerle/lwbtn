@@ -13,11 +13,13 @@ else()
     target_sources(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/dev/main.c
         ${CMAKE_CURRENT_LIST_DIR}/examples/example_win32.c
+        ${CMAKE_CURRENT_LIST_DIR}/examples/test.c
     )
 
     # Add key include paths
     target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/dev
+        ${CMAKE_CURRENT_LIST_DIR}/examples
     )
 
     # Compilation definition information

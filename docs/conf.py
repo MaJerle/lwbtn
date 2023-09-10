@@ -136,6 +136,7 @@ html_js_files = [
 master_doc = 'index'
 
 # --- Breathe configuration -----------------------------------------------------
+breathe_show_define_initializer = True
 breathe_projects = {
 	"lwbtn": "_build/xml/"
 }

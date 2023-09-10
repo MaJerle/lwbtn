@@ -61,4 +61,12 @@ table thead th p {
   margin-bottom: 0;
 }
 
+/* Add margin from macro to the value in output */
+.breathe-sectiondef span.sig-name {
+    margin-right: 10px;
+}
+
+.image-with-black-border {
+    border: 1px solid #DDDDDD;
+}
 /*# sourceMappingURL=common.css.map */

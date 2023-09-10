@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "lwbtn.h": "c",
+        "lwbtn_opt.h": "c",
+        "lwbtn_opts.h": "c",
+        "main.h": "c",
+        "stm32l0xx_hal.h": "c"
+    }
+}

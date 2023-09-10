@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v0.0.2
+ * Version:         v1.0.0
  */
 #include <string.h>
 #include "lwbtn/lwbtn.h"
@@ -44,9 +44,9 @@
                                                     Do not call "get_state" function */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
-#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) (uint32_t)((btn)->time_debounce)
+#define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) (uint32_t)((btn)->time_debounce)
 #else
-#define LWBTN_TIME_DEBOUNCE_GET_MIN(btn) (uint32_t) LWBTN_CFG_TIME_DEBOUNCE_PRESS
+#define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) (uint32_t) LWBTN_CFG_TIME_DEBOUNCE_PRESS
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
@@ -131,7 +131,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
              * - Config debounce time for press is more than `0`
              */
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_PRESS > 0
-            if ((mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_GET_MIN(btn))
+            if ((mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn))
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_PRESS> 0 */
             {
 #if !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
@@ -149,14 +149,13 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                 /* Start with new on-press */
                 btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONPRESS);
-
-                btn->time_change = mstime; /* Button state has now changed */
 #if LWBTN_CFG_USE_KEEPALIVE
                 /* Set keep alive time */
                 btn->keepalive.last_time = mstime;
-                btn->keepalive.last_time = mstime;
                 btn->keepalive.cnt = 0;
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
+
+                btn->time_change = mstime; /* Button state has now changed */
             }
         }
 
@@ -167,7 +166,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
          */
         else {
 #if LWBTN_CFG_USE_KEEPALIVE
-            if ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
+            while ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                 btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                 ++btn->keepalive.cnt;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
@@ -204,7 +203,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
 
                     /*
                      * Increase consecutive clicks if max not reached yet
-                     * and if time between two clicks is not too long
+                     * and if time between two clicks is not long enough
                      * 
                      * Otherwise we consider click as fresh one
                      */
@@ -212,6 +211,17 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                         && (mstime - btn->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
                         ++btn->click.cnt;
                     } else {
+                        /*
+                         * Take care of any previous clicks if new one doesn't fit anymore in this context.
+                         *
+                         * This can only happen, if onpress started earlier than max consecutive time,
+                         * while onrelease happened later than maximum consecutive time.
+                         * 
+                         * In this case simply report previous state before setting new click.
+                         */
+                        if (btn->click.cnt > 0) {
+                            lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                        }
                         btn->click.cnt = 1;
                     }
                     btn->click.last_time = mstime;
@@ -220,9 +230,9 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                      * There was an on-release event, but timing
                      * for click event detection is outside allowed window.
                      * 
-                     * If user has some consecutive clicks from previous clicks,
-                     * these will be sent after the timeout window (and after the on-release event)
+                     * Reset clicks counter -> not valid sequence for click event.
                      */
+                    btn->click.cnt = 0;
                 }
 
 #if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
@@ -255,6 +265,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
             }
         }
     }
+
     btn->old_state = new_state;
 }
 
