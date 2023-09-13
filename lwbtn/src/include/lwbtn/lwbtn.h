@@ -193,6 +193,22 @@ uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
  */
 #define lwbtn_process_btn(btn, mstime)                   lwbtn_process_btn_ex(NULL, (btn), (mstime))
 
+#if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__
+
+/**
+ * \brief           Get keep alive period for specific button
+ * \param[in]       btn: Button instance to get keep alive period for
+ * \return          Keep alive period in `ms`
+ */
+#define lwbtn_keepalive_get_period(btn) ((btn)->time_keepalive_period)
+
+#else
+/* Default config */
+#define lwbtn_keepalive_get_period(btn) (LWBTN_CFG_TIME_KEEPALIVE_PERIOD)
+#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__ */
+#endif /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
+
 /**
  * \}
  */

@@ -2,6 +2,8 @@
 
 ## Develop
 
+- Add `lwbtn_keepalive_get_period` function
+
 ## v1.0.0
 
 - Send `CLICK` event if there is an overlap between max time between clicks and new click arrives
