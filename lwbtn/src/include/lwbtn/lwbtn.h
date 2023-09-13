@@ -209,11 +209,31 @@ uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
 #endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__ */
 
 /**
- * \brief           Get number of keep alive counts since the last on-press event
+ * \brief           Get actual number of keep alive counts since the last on-press event.
+ *                  It is set to `0` if btn isn't pressed
  * \param[in]       btn: Button instance to get keep alive period for
  * \return          Number of keep alive events since on-press event
+ * \sa              lwbtn_keepalive_get_count_for_time
  */
-#define lwbtn_keepalive_get_count(btn) ((btn)->keepalive.cnt)
+#define lwbtn_keepalive_get_count(btn)                   ((btn)->keepalive.cnt)
+
+/**
+ * \brief           Get number of keep alive counts for specific required time in milliseconds.
+ *                  It will calculate number of keepalive ticks specific button shall make,
+ *                  before requested time is reached.
+ * 
+ * Result of the function can be used with \ref lwbtn_keepalive_get_count which returns
+ * actual number of keep alive counts since last on-press event of the button.
+ * 
+ * \note            Value is always integer aligned, with granularity of one keepalive time period
+ * \note            Implemented as macro, as it may be optimized by compiler when static keep alive is used
+ * 
+ * \param[in]       btn: Button to use for check
+ * \param[in]       my_time: Time in ms to calculate number of keep alive counts
+ * \return          Number of keep alive counts
+ * \sa              lwbtn_keepalive_get_count
+ */
+#define lwbtn_keepalive_get_count_for_time(btn, my_time) ((my_time) / lwbtn_keepalive_get_period(btn))
 
 #endif /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
 
