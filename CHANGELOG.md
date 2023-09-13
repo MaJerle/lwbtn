@@ -3,6 +3,8 @@
 ## Develop
 
 - Add `lwbtn_keepalive_get_period` function
+- Add `lwbtn_keepalive_get_count` function to get keepalive count
+- ADd `lwbtn_click_get_count` function to get consecutive clicks
 
 ## v1.0.0
 

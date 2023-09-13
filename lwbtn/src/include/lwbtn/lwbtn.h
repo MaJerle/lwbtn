@@ -207,7 +207,22 @@ uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
 /* Default config */
 #define lwbtn_keepalive_get_period(btn) (LWBTN_CFG_TIME_KEEPALIVE_PERIOD)
 #endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__ */
+
+/**
+ * \brief           Get number of keep alive counts since the last on-press event
+ * \param[in]       btn: Button instance to get keep alive period for
+ * \return          Number of keep alive events since on-press event
+ */
+#define lwbtn_keepalive_get_count(btn) ((btn)->keepalive.cnt)
+
 #endif /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
+
+/**
+ * \brief           Get number of consecutive click events on a button
+ * \param[in]       btn: Button instance to get number of clicks
+ * \return          Number of consecutive clicks on a button
+ */
+#define lwbtn_click_get_count(btn) ((btn)->click.cnt)
 
 /**
  * \}
