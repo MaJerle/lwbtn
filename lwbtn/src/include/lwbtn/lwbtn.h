@@ -229,11 +229,11 @@ uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
  * \note            Implemented as macro, as it may be optimized by compiler when static keep alive is used
  * 
  * \param[in]       btn: Button to use for check
- * \param[in]       my_time: Time in ms to calculate number of keep alive counts
+ * \param[in]       ms_time: Time in ms to calculate number of keep alive counts
  * \return          Number of keep alive counts
  * \sa              lwbtn_keepalive_get_count
  */
-#define lwbtn_keepalive_get_count_for_time(btn, my_time) ((my_time) / lwbtn_keepalive_get_period(btn))
+#define lwbtn_keepalive_get_count_for_time(btn, ms_time) ((ms_time) / lwbtn_keepalive_get_period(btn))
 
 #endif /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
 
