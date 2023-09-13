@@ -2,7 +2,10 @@
 
 ## Develop
 
+## v1.0.0
+
 - Send `CLICK` event if there is an overlap between max time between clicks and new click arrives
+- Do not send `CLICK` event if there was previously detected long hold press (hold time exceeded max allowed click time)
 
 ## v0.0.2
 
