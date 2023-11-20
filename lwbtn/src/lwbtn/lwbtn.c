@@ -292,7 +292,7 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
         return 0;
     }
 
-    memset(lwobj, 0x00, sizeof(*lwobj));
+    LWBTN_MEMSET(lwobj, 0x00, sizeof(*lwobj));
     lwobj->btns = btns;
     lwobj->btns_cnt = btns_cnt;
     lwobj->evt_fn = evt_fn;

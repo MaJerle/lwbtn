@@ -53,6 +53,24 @@ extern "C" {
  */
 
 /**
+ * \brief           Memory set function
+ * 
+ * \note            Function footprint is the same as \ref memset
+ */
+#ifndef LWBTN_MEMSET
+#define LWBTN_MEMSET(dst, val, len) memset((dst), (val), (len))
+#endif
+
+/**
+ * \brief           Memory copy function
+ * 
+ * \note            Function footprint is the same as \ref memcpy
+ */
+#ifndef LWBTN_MEMCPY
+#define LWBTN_MEMCPY(dst, src, len) memcpy((dst), (src), (len))
+#endif
+
+/**
  * \brief           Enables `1` or disables `0` periodic keep alive events.
  * 
  * Default keep alive period is set with \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD macro
