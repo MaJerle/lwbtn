@@ -41,4 +41,6 @@
  * copy & replace here settings you want to change values
  */
 
+#define LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS 0
+
 #endif /* LWBTN_HDR_OPTS_H */
