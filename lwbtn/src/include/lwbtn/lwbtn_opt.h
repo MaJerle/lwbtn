@@ -73,6 +73,9 @@ extern "C" {
 /**
  * \brief           Enables `1` or disables `0` periodic keep alive events.
  * 
+ * Keep alive events are periodically sent to the application,
+ * when input is kept in active state.s
+ * 
  * Default keep alive period is set with \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD macro
  */
 #ifndef LWBTN_CFG_USE_KEEPALIVE
@@ -91,6 +94,8 @@ extern "C" {
  *                  immediately when input states goes to *inactive* state.
  *  
  *                  To be safe not using this feature, external logic must ensure stable transition at input level.
+ * 
+ * \sa              LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
  */
 #ifndef LWBTN_CFG_TIME_DEBOUNCE_PRESS
 #define LWBTN_CFG_TIME_DEBOUNCE_PRESS 20
@@ -122,6 +127,8 @@ extern "C" {
  * 
  * \note            If value is set to `0`, debounce is not used and *release* event will be triggered
  *                  immediately when input states goes to *inactive* state
+ * 
+ * \sa              LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
  */
 #ifndef LWBTN_CFG_TIME_DEBOUNCE_RELEASE
 #define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 0
@@ -143,8 +150,10 @@ extern "C" {
 /**
  * \brief           Minimum active input time for valid click event, in milliseconds
  * 
- * Input shall be pressed at least this amount of time to even consider the potential valid click event.
+ * Input shall be in active state (after debounce) at least this amount of time to even consider the potential valid click event.
  * Set the value to `0` to disable this feature
+ * 
+ * \sa              LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MIN
 #define LWBTN_CFG_TIME_CLICK_MIN 20
@@ -153,7 +162,9 @@ extern "C" {
 /**
  * \brief           Enables `1` or disables `0` dynamic settable min time for click
  * 
- * When enabled, additional field is added to button structure
+ * When enabled, additional field is added to button structure,
+ * allowing application to manually set min pressed time for click for each button instance.
+ * Default value is set to \ref LWBTN_CFG_TIME_CLICK_MIN
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
 #define LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC 0
@@ -164,6 +175,10 @@ extern "C" {
  * 
  * Input shall be pressed at most this amount of time to still trigger valid click.
  * Set to `-1` to allow any time triggering click event.
+ * 
+ * When input is active for more than the configured time, click even is not detected and is ignored.
+ * 
+ * \sa              LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MAX
 #define LWBTN_CFG_TIME_CLICK_MAX 300
@@ -172,7 +187,9 @@ extern "C" {
 /**
  * \brief           Enables `1` or disables `0` dynamic settable max time for click
  * 
- * When enabled, additional field is added to button structure
+ * When enabled, additional field is added to button structure,
+ * allowing application to manually set max pressed time for click for each button instance.
+ * Default value is set to \ref LWBTN_CFG_TIME_CLICK_MAX
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
 #define LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC 0
@@ -182,8 +199,13 @@ extern "C" {
  * \brief           Maximum allowed time between last on-release and next valid on-press,
  *                  to still allow multi-click events, in milliseconds
  * 
- * This value is also used as a timeout length. It sends *onclick* event if there
- * is no further presses by the application.
+ * This value is also used as a timeout length to send the *onclick* event to application from
+ * previously detected valid click events.
+ * 
+ * If application relies on multi consecutive clicks, this is the max time to allow user
+ * to trigger potential new click, or structure will get reset (before sent to user if any clicks have been detected so far)
+ * 
+ * \sa              LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX
 #define LWBTN_CFG_TIME_CLICK_MULTI_MAX 400
@@ -192,7 +214,9 @@ extern "C" {
 /**
  * \brief           Enables `1` or disables `0` dynamic settable max time for multi click
  * 
- * When enabled, additional field is added to button structure
+ * When enabled, additional field is added to button structure,
+ * allowing application to manually set max time for multi click for each button instance.
+ * Default value is set to \ref LWBTN_CFG_TIME_CLICK_MULTI_MAX
  */
 #ifndef LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
 #define LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC 0
@@ -200,7 +224,15 @@ extern "C" {
 
 /**
  * \brief           Maximum number of allowed consecutive click events,
- *                  before structure gets reset to default value
+ *                  before structure gets reset to default value.
+ * 
+ * \note            When consecutive value is reached, application will get notification of clicks.
+ *                  This can be executed immediately after last click has been detected,
+ *                  or after standard timeout (unless next on-press has already been detected,
+ *                  then it is send to application just before valid next press event).
+ *                  Configuration can be changed \ref LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
+ * 
+ * \sa              LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
  */
 #ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 3
@@ -209,7 +241,9 @@ extern "C" {
 /**
  * \brief           Enables `1` or disables `0` dynamic settable max consecutive clicks
  * 
- * When enabled, additional field is added to button structure
+ * When enabled, additional field is added to button structure,
+ * allowing application to manually set max consecutive clicks for each button instance.
+ * Default value is set to \ref LWBTN_CFG_CLICK_MAX_CONSECUTIVE
  */
 #ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC 0
@@ -218,6 +252,10 @@ extern "C" {
 /**
  * \brief           Keep-alive event period, in milliseconds
  * 
+ * When input is active, keep alive events will be sent through this period of time.
+ * First keep alive will be sent \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD ms after input being considered active.
+ * 
+ * \sa              LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
  */
 #ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD
 #define LWBTN_CFG_TIME_KEEPALIVE_PERIOD 100
@@ -226,7 +264,9 @@ extern "C" {
 /**
  * \brief           Enables `1` or disables `0` dynamic settable keep alive period
  * 
- * When enabled, additional field is added to button structure
+ * When enabled, additional field is added to button structure,
+ * allowing application to manually set keep alive period for each button instance.
+ * Default value is set to \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD
  */
 #ifndef LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
 #define LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC 0
@@ -266,6 +306,15 @@ extern "C" {
  */
 #ifndef LWBTN_CFG_GET_STATE_MODE
 #define LWBTN_CFG_GET_STATE_MODE LWBTN_GET_STATE_MODE_CALLBACK
+#endif
+
+/**
+ * \brief           Enables `1` or disables `0` keeping the consecutive click event group if last
+ *                  sequence of *onpress* and *onrelease* was too short.
+ * 
+ */
+#ifndef LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS
+#define LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS 0
 #endif
 
 /**

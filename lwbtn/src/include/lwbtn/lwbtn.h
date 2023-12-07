@@ -103,7 +103,7 @@ typedef struct lwbtn_btn {
     uint16_t flags; /*!< Private button flags management */
 #if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
     uint8_t curr_state;         /*!< Current button state to be processed. It is used 
-                                to keep track when application manually sets the button state */
+                                    to keep track when application manually sets the button state */
 #endif                          /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
     uint8_t old_state;          /*!< Old button state - `1` means active, `0` means inactive */
     uint32_t time_change;       /*!< Time in ms when button state got changed last time after valid debounce */
