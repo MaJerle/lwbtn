@@ -230,9 +230,9 @@ extern "C" {
  *                  This can be executed immediately after last click has been detected,
  *                  or after standard timeout (unless next on-press has already been detected,
  *                  then it is send to application just before valid next press event).
- *                  Configuration can be changed \ref LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
+ *                  Configuration can be changed with \ref LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY macro
  * 
- * \sa              LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
+ * \sa              LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC, LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
  */
 #ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE 3
@@ -286,9 +286,22 @@ extern "C" {
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY 1
 #endif
 
+/**
+ * \brief           Get button state options
+ * \name            LWBTN_CFG_GET_STATE_MODE_GROUP
+ * \anchor          LWBTN_CFG_GET_STATE_MODE_GROUP
+ * \{
+ * 
+ * Configuration option for \ref LWBTN_CFG_GET_STATE_MODE configuration
+ */
+
 #define LWBTN_GET_STATE_MODE_CALLBACK           0 /*!< Callback-only state mode */
 #define LWBTN_GET_STATE_MODE_MANUAL             1 /*!< Manual-only state mode */
 #define LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL 2 /*!< Callback or manual state mode */
+
+/**
+ * \}
+ */
 
 /**
  * \brief           Sets the mode how new button state is acquired.
@@ -302,7 +315,7 @@ extern "C" {
  *          It enables API to manually set the state with approapriate function call.
  *          Button state is checked with the callback at least until manual state API function is called.
  * 
- *      This allows multiple build configurations for various button types
+ *          This allows multiple build configurations for various button types
  */
 #ifndef LWBTN_CFG_GET_STATE_MODE
 #define LWBTN_CFG_GET_STATE_MODE LWBTN_GET_STATE_MODE_CALLBACK

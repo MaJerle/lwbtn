@@ -42,6 +42,7 @@ On-Press event
 Onpress event is the first in a row when input is detected active.
 With nature of embedded systems and various buttons connected to devices, it is necessary to filter out potential noise to ignore unintential multiple presses.
 This is done by checking line to be at stable level for at least some minimum time, normally called *debounce time*, usually it takes around ``20ms``.
+See :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_PRESS` configuration option to set debounce time.
 
 .. figure:: ../static/images/btn-events-press.svg
     :align: center
@@ -59,6 +60,10 @@ Onrelease event is triggered immediately when input goes from active to inactive
     :alt: On-Release event trigger
 
     On-Release event trigger
+
+Optionally, user can also enable debounce for release event.
+In this case, **onrelease** is triggered after line is in steady inactive mode for at least minimum defined time.
+See :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_RELEASE` configuration option to set debounce time.
 
 On-Click event
 ^^^^^^^^^^^^^^
