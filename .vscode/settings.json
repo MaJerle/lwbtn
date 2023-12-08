@@ -12,5 +12,6 @@
         "bitset": "c",
         "stdio.h": "c"
     },
-    "esbonio.sphinx.confDir": ""
+    "esbonio.sphinx.confDir": "",
+    "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true
 }

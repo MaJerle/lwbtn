@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.0.0
+ * Version:         v1.1.0
  */
 #ifndef LWBTN_HDR_OPTS_H
 #define LWBTN_HDR_OPTS_H
@@ -40,5 +40,7 @@
  * Open "include/lwbtn/lwbtn_opt.h" and
  * copy & replace here settings you want to change values
  */
+
+#define LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS 0
 
 #endif /* LWBTN_HDR_OPTS_H */

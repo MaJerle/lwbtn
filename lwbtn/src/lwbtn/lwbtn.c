@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.0.0
+ * Version:         v1.1.0
  */
 #include <string.h>
 #include "lwbtn/lwbtn.h"
@@ -226,6 +226,12 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                     }
                     btn->click.last_time = mstime;
                 } else {
+#if LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS
+                    /* If last press was too short, and previous sequence of clicks was positive, send event to user */
+                    if (btn->click.cnt > 0 && (mstime - btn->time_change) < LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)) {
+                        lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                    }
+#endif /* LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS */
                     /*
                      * There was an on-release event, but timing
                      * for click event detection is outside allowed window.
@@ -292,7 +298,7 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
         return 0;
     }
 
-    memset(lwobj, 0x00, sizeof(*lwobj));
+    LWBTN_MEMSET(lwobj, 0x00, sizeof(*lwobj));
     lwobj->btns = btns;
     lwobj->btns_cnt = btns_cnt;
     lwobj->evt_fn = evt_fn;
@@ -335,7 +341,7 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
  * It checks state of all the buttons, linked to the specific LwBTN instance (group).
  * 
  * \param[in]       lwobj: LwBTN instance. Set to `NULL` to use default one
- * \param[in]       mstime: Current time in milliseconds
+ * \param[in]       mstime: Current system time in milliseconds
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
@@ -357,8 +363,8 @@ lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime) {
  * and when it will call specific button processing.
  * 
  * \param[in]       lwobj: LwBTN instance. Set to `NULL` to use default one
- * \param[in]       btn: Button object. Must not be set to `NULL`.
- * \param[in]       mstime: Current time in milliseconds
+ * \param[in]       btn: Button object. Must not be set to `NULL`
+ * \param[in]       mstime: Current system time in milliseconds
  * \return          `1` on success, `0` otherwise
  */
 uint8_t

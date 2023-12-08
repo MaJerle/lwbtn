@@ -2,6 +2,15 @@
 
 ## Develop
 
+## v1.1.0
+
+- Add `lwbtn_keepalive_get_period` function
+- Add `lwbtn_keepalive_get_count` function to get keepalive count
+- Add `lwbtn_click_get_count` function to get consecutive clicks
+- Add `lwbtn_keepalive_get_count_for_time` function to calculate number of required keep alive tick
+- Improve configuration documentation text
+- Add `LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS` option to report previous clicks, even if last sequence of *onpress* and *onrelease* is too short for valid click event.
+
 ## v1.0.0
 
 - Send `CLICK` event if there is an overlap between max time between clicks and new click arrives

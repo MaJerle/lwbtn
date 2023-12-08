@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.0.0
+ * Version:         v1.1.0
  */
 #ifndef LWBTN_HDR_H
 #define LWBTN_HDR_H
@@ -103,7 +103,7 @@ typedef struct lwbtn_btn {
     uint16_t flags; /*!< Private button flags management */
 #if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
     uint8_t curr_state;         /*!< Current button state to be processed. It is used 
-                                to keep track when application manually sets the button state */
+                                    to keep track when application manually sets the button state */
 #endif                          /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
     uint8_t old_state;          /*!< Old button state - `1` means active, `0` means inactive */
     uint32_t time_change;       /*!< Time in ms when button state got changed last time after valid debounce */
@@ -192,6 +192,57 @@ uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
  * \param[in]       mstime: Current system time in milliseconds
  */
 #define lwbtn_process_btn(btn, mstime)                   lwbtn_process_btn_ex(NULL, (btn), (mstime))
+
+#if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
+#if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__
+
+/**
+ * \brief           Get keep alive period for specific button
+ * \param[in]       btn: Button instance to get keep alive period for
+ * \return          Keep alive period in `ms`
+ */
+#define lwbtn_keepalive_get_period(btn) ((btn)->time_keepalive_period)
+
+#else
+/* Default config */
+#define lwbtn_keepalive_get_period(btn) (LWBTN_CFG_TIME_KEEPALIVE_PERIOD)
+#endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC || __DOXYGEN__ */
+
+/**
+ * \brief           Get actual number of keep alive counts since the last on-press event.
+ *                  It is set to `0` if btn isn't pressed
+ * \param[in]       btn: Button instance to get keep alive period for
+ * \return          Number of keep alive events since on-press event
+ * \sa              lwbtn_keepalive_get_count_for_time
+ */
+#define lwbtn_keepalive_get_count(btn)                   ((btn)->keepalive.cnt)
+
+/**
+ * \brief           Get number of keep alive counts for specific required time in milliseconds.
+ *                  It will calculate number of keepalive ticks specific button shall make,
+ *                  before requested time is reached.
+ * 
+ * Result of the function can be used with \ref lwbtn_keepalive_get_count which returns
+ * actual number of keep alive counts since last on-press event of the button.
+ * 
+ * \note            Value is always integer aligned, with granularity of one keepalive time period
+ * \note            Implemented as macro, as it may be optimized by compiler when static keep alive is used
+ * 
+ * \param[in]       btn: Button to use for check
+ * \param[in]       ms_time: Time in ms to calculate number of keep alive counts
+ * \return          Number of keep alive counts
+ * \sa              lwbtn_keepalive_get_count
+ */
+#define lwbtn_keepalive_get_count_for_time(btn, ms_time) ((ms_time) / lwbtn_keepalive_get_period(btn))
+
+#endif /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
+
+/**
+ * \brief           Get number of consecutive click events on a button
+ * \param[in]       btn: Button instance to get number of clicks
+ * \return          Number of consecutive clicks on a button
+ */
+#define lwbtn_click_get_count(btn) ((btn)->click.cnt)
 
 /**
  * \}

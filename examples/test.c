@@ -5,8 +5,8 @@
 #include "windows.h"
 #endif /* defined(WIN32) */
 #if defined(STM32)
-#include "stm32l0xx_hal.h"
 #include "main.h"
+#include "stm32l0xx_hal.h"
 #endif /* defined(STM32) */
 
 /**
@@ -15,6 +15,8 @@
 typedef struct {
     uint8_t state;     /*!< Input state -> 1 = active, 0 = inactive */
     uint32_t duration; /*!< Time until this state is enabled */
+    const char* text;  /*!< Text to print. If non-NULL, text is printed and the rest is ignored */
+    uint8_t text_printed;
 } btn_test_time_t;
 
 /**
@@ -27,15 +29,16 @@ typedef struct {
 } btn_test_evt_t;
 
 /* Max number of ms to demonstrate */
-#define MAX_TIME_MS 5000
+#define MAX_TIME_MS 0xFFFF
 
 /* Tests to run */
-#define TEST1       0
-#define TEST2       0
-#define TEST3       0
-#define TEST4       0
-#define TEST5       0
+#define TEST1       1
+#define TEST2       1
+#define TEST3       1
+#define TEST4       1
+#define TEST5       1
 #define TEST6       1
+#define TEST7       1
 
 /* List of used buttons -> test case */
 static lwbtn_btn_t btns[1];
@@ -45,6 +48,9 @@ static volatile uint8_t is_pressed = 0, is_click = 0;
 /* Set button state -> used for test purposes */
 #define BTN_STATE(_state_, _duration_)                                                                                 \
     { .state = (_state_), .duration = (_duration_) }
+
+#define BTN_PRINT(text_to_print)                                                                                       \
+    { .text = (text_to_print) }
 
 /* On-Press event */
 #define BTN_EVENT_ONPRESS()                                                                                            \
@@ -62,7 +68,7 @@ static volatile uint8_t is_pressed = 0, is_click = 0;
 /*
  * Simulate click event
  */
-static const btn_test_time_t test_sequence[] = {
+static btn_test_time_t test_sequence[] = {
 #if TEST1
     /* 
      * Test 1:
@@ -79,6 +85,7 @@ static const btn_test_time_t test_sequence[] = {
      * Add +1 to the end, to force click event,
      * and not to go to "consecutive clicks" if any further tests are added in this sequence
      */
+    BTN_PRINT("Test 1"),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX + 1),
     BTN_STATE(0, 100), /* Keep low before next test */
@@ -93,6 +100,7 @@ static const btn_test_time_t test_sequence[] = {
      * Simulate "2" consecutive clicks and report final "click" event at the end of the sequence,
      * with "2" consecutive clicks in the report info
      */
+    BTN_PRINT("Test 2"),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
@@ -106,6 +114,7 @@ static const btn_test_time_t test_sequence[] = {
      *
      * Triple click with direct report
      */
+    BTN_PRINT("Test 3"),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
@@ -124,6 +133,7 @@ static const btn_test_time_t test_sequence[] = {
      * Simulate "2" consecutive clicks and report final "click" event at the end of the sequence,
      * with "2" consecutive clicks in the report info
      */
+    BTN_PRINT("Test 4"),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     /* Hold button in release state for time that is max for 2 clicks - time that we will
         indicate in the next press state -> this is the frequency between detected events */
@@ -147,6 +157,7 @@ static const btn_test_time_t test_sequence[] = {
      * In this case, 2 onclick events are sent,
      * both with consecutive clicks counter set to 1
      */
+    BTN_PRINT("Test 5"),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MULTI_MAX
                      - (LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN)),
@@ -162,10 +173,23 @@ static const btn_test_time_t test_sequence[] = {
      * Make a click event, followed by the longer press.
      * Simulate "long press" w/ previous click, that has click counter set to 1
      */
+    BTN_PRINT("Test 6"),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
     BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN + 1000),
     BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
+#endif
+
+#if TEST7
+    /* This one will pass only if LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS is enabled */
+    /* Make 2 clicks, and 3rd one with short press (shorter than minimum required) */
+    BTN_PRINT("Test 7"),
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE + LWBTN_CFG_TIME_CLICK_MAX),
+    BTN_STATE(1, LWBTN_CFG_TIME_DEBOUNCE_PRESS + LWBTN_CFG_TIME_CLICK_MIN - 2),
+    BTN_STATE(0, LWBTN_CFG_TIME_DEBOUNCE_RELEASE),
 #endif
 };
 
@@ -176,7 +200,7 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONPRESS(),
     BTN_EVENT_ONRELEASE(),
     BTN_EVENT_ONCLICK(1),
-#endif
+#endif /* TEST1 */
 
 #if TEST2
     /* Test 2 */
@@ -185,7 +209,7 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONPRESS(),
     BTN_EVENT_ONRELEASE(),
     BTN_EVENT_ONCLICK(2),
-#endif
+#endif /* TEST2 */
 
 #if TEST3
     /* Test 3 */
@@ -196,7 +220,7 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONPRESS(),
     BTN_EVENT_ONRELEASE(),
     BTN_EVENT_ONCLICK(3),
-#endif
+#endif /* TEST3 */
 
 #if TEST4
     /* Test 4 */
@@ -205,7 +229,7 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONPRESS(),
     BTN_EVENT_ONRELEASE(),
     BTN_EVENT_ONCLICK(2),
-#endif
+#endif /* TEST4 */
 
 #if TEST5
     /* Test 5 */
@@ -217,7 +241,7 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_ONCLICK(1),
     /* This one is to handle click for second sequence */
     BTN_EVENT_ONCLICK(1),
-#endif
+#endif /* TEST5 */
 
 #if TEST6
     /* Test 6 */
@@ -235,7 +259,21 @@ static const btn_test_evt_t test_events[] = {
     BTN_EVENT_KEEPALIVE(9),
     BTN_EVENT_KEEPALIVE(10),
     BTN_EVENT_ONRELEASE(),
-#endif
+#endif /* TEST6 */
+
+#if TEST7
+    /* Test 7 */
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_ONRELEASE(),
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_ONRELEASE(),
+    /* This one is short... */
+    BTN_EVENT_ONPRESS(),
+    BTN_EVENT_ONRELEASE(),
+#if LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS
+    BTN_EVENT_ONCLICK(2),
+#endif /* LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS */
+#endif /* TEST7 */
 };
 
 /* Get button state for given current time */
@@ -248,6 +286,10 @@ prv_get_state_for_time(uint32_t time) {
         duration += test_sequence[i].duration; /* Advance time */
         if (time <= duration) {
             state = test_sequence[i].state;
+            if (i > 0 && test_sequence[i - 1].text != NULL && !test_sequence[i - 1].text_printed) {
+                printf("Text: %s\r\n", test_sequence[i - 1].text);
+                test_sequence[i - 1].text_printed = 1;
+            }
             break;
         }
     }
@@ -346,7 +388,7 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
         is_click = 1;
         HAL_GPIO_WritePin(OUT_CLICK_GPIO_Port, OUT_CLICK_Pin, GPIO_PIN_SET);
     }
-#endif             /* defined(WIN32) */
+#endif /* defined(WIN32) */
     (void)lw;
 }
 
