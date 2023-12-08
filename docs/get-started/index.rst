@@ -64,7 +64,6 @@ Next step is to add the library to the project, by means of source files to comp
 * Add ``lwbtn/src/include`` folder to `include path` of your toolchain. This is where `C/C++` compiler can find the files during compilation process. Usually using ``-I`` flag
 * Add source files from ``lwbtn/src/`` folder to toolchain build. These files are built by `C/C++` compiler. CMake configuration comes with the library, allows users to include library in the project as **subdirectory** and **library**.
 * Copy ``lwbtn/src/include/lwbtn/lwbtn_opts_template.h`` to project folder and rename it to ``lwbtn_opts.h``
-* Copy ``lwbtn/src/include/lwbtn/lwbtn_types_template.h`` to project folder and rename it to ``lwbtn_types.h``
 * Build the project
 
 Configuration file
