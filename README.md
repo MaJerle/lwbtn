@@ -8,6 +8,8 @@
 * Platform independent, requires user to provide millisecond timing source
 * No dynamic memory allocation
 * Callback driven event management
+* Support for click, multi click and long press events
+* Support for software debounce for press and release events
 * Easy to use and maintain
 * User friendly MIT license
 
