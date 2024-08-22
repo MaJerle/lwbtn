@@ -46,29 +46,26 @@ static volatile uint32_t time_current;
 static volatile uint8_t is_pressed = 0, is_click = 0;
 
 /* Set button state -> used for test purposes */
-#define BTN_STATE(_state_, _duration_)                                                                                 \
-    { .state = (_state_), .duration = (_duration_) }
+#define BTN_STATE(_state_, _duration_)       {.state = (_state_), .duration = (_duration_)}
 
-#define BTN_PRINT(text_to_print)                                                                                       \
-    { .text = (text_to_print) }
+#define BTN_PRINT(text_to_print)             {.text = (text_to_print)}
 
 /* On-Press event */
-#define BTN_EVENT_ONPRESS()                                                                                            \
-    { .evt = LWBTN_EVT_ONPRESS }
+#define BTN_EVENT_ONPRESS()                  {.evt = LWBTN_EVT_ONPRESS}
 /* On-Release event */
-#define BTN_EVENT_ONRELEASE()                                                                                          \
-    { .evt = LWBTN_EVT_ONRELEASE }
+#define BTN_EVENT_ONRELEASE()                {.evt = LWBTN_EVT_ONRELEASE}
 /* On-Click event */
-#define BTN_EVENT_ONCLICK(_conseq_clicks_)                                                                             \
-    { .evt = LWBTN_EVT_ONCLICK, .conseq_clicks = (_conseq_clicks_) }
+#define BTN_EVENT_ONCLICK(_conseq_clicks_)   {.evt = LWBTN_EVT_ONCLICK, .conseq_clicks = (_conseq_clicks_)}
 /* On-Click event */
-#define BTN_EVENT_KEEPALIVE(_keepalive_cnt_)                                                                           \
-    { .evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_) }
+#define BTN_EVENT_KEEPALIVE(_keepalive_cnt_) {.evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_)}
 
 /*
  * Simulate click event
  */
 static btn_test_time_t test_sequence[] = {
+    /* Button state must start with 0 */
+    BTN_STATE(0, 1),
+
 #if TEST1
     /* 
      * Test 1:

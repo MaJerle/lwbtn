@@ -2,6 +2,8 @@
 
 ## Develop
 
+- Add detection of the first button state to be inactive before debouncing can even start
+
 ## v1.1.0
 
 - Add `lwbtn_keepalive_get_period` function

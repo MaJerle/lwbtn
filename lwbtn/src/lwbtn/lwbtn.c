@@ -42,6 +42,8 @@
 #define LWBTN_FLAG_MANUAL_STATE                                                                                        \
     ((uint16_t)0x0002) /*!< Flag indicates that user wants to manually set button state.
                                                     Do not call "get_state" function */
+#define LWBTN_FLAG_FIRST_INACTIVE_RCVD                                                                                 \
+    ((uint16_t)0x0004) /*!< We are waiting for first inactive state before we continue further */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
 #define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) (uint32_t)((btn)->time_debounce)
@@ -110,6 +112,20 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
 
     /* Get button state */
     new_state = LWBTN_BTN_GET_STATE(lwobj, btn);
+
+    /* 
+     * First state must be "inactive" one, before
+     * any further button state is being processed.
+     * 
+     * This is to prevent initial detected state on hardware errors,
+     * or when button is kept pressed after the system/lib reset
+     */
+    if (!(btn->flags & LWBTN_FLAG_FIRST_INACTIVE_RCVD)) {
+        if (new_state) {
+            return;
+        }
+        btn->flags |= LWBTN_FLAG_FIRST_INACTIVE_RCVD;
+    }
 
     /* Button state has just changed */
     if (new_state != btn->old_state) {
