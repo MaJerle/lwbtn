@@ -26,6 +26,20 @@ A simple example for win32 is below:
     :linenos:
     :caption: Win32 example code
 
+Input pin state reading
+^^^^^^^^^^^^^^^^^^^^^^^
+
+User must implement a callback function that is periodically called from the **LwBTN** library, every time user calls one of the processing functions, such as :c:func:`lwbtn_process` or :c:func:`lwbtn_process_ex` functions.
+
+The input reading function is required to provide the actual state of the input and must return a state:
+
+* ``1`` when input is considered active (pressed)
+* ``0`` when input is considered released (not-pressed) or in idle state
+
+.. tip::
+    This is the place where you check peripheral GPIO registers in your embedded device and report the status to the library.
+    Depending on the physical wiring, you should check if peripheral bit is set or clear, to determine if input is active or inactive.
+
 Input events
 ^^^^^^^^^^^^
 
