@@ -74,7 +74,9 @@ struct lwbtn;
 typedef enum {
     LWBTN_EVT_ONPRESS = 0x00, /*!< On press event - sent when valid press is detected (after debounce if enabled) */
     LWBTN_EVT_ONRELEASE, /*!< On release event - sent when valid release event is detected (from active to inactive) */
-    LWBTN_EVT_ONCLICK,   /*!< On Click event - sent when valid sequence of on-press and on-release events occurs */
+#if LWBTN_CFG_USE_CLICK || __DOXYGEN__
+    LWBTN_EVT_ONCLICK, /*!< On Click event - sent when valid sequence of on-press and on-release events occurs */
+#endif                 /* LWBTN_CFG_USE_CLICK || __DOXYGEN__ */
 #if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
     LWBTN_EVT_KEEPALIVE, /*!< Keep alive event - sent periodically when button is active */
 #endif                   /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
@@ -117,10 +119,12 @@ typedef struct lwbtn_btn {
     } keepalive;            /*!< Keep alive structure */
 #endif                      /* LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__ */
 
+#if LWBTN_CFG_USE_CLICK || __DOXYGEN__
     struct {
         uint32_t last_time; /*!< Time in ms of last successfully detected (not sent!) click event */
         uint8_t cnt;        /*!< Number of consecutive clicks detected, respecting maximum timeout between clicks */
     } click;                /*!< Click event structure */
+#endif                      /* LWBTN_CFG_USE_CLICK || __DOXYGEN__ */
 
     void* arg; /*!< User defined custom argument for callback function purpose */
 

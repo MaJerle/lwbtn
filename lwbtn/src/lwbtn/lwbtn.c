@@ -213,6 +213,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                 btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONRELEASE);
 
+#if LWBTN_CFG_USE_CLICK
                 /* Check time validity for click event */
                 if ((mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)
                     && (mstime - btn->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn)) {
@@ -267,10 +268,13 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                     lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
-#endif                                     /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
+#endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
+#endif /* LWBTN_CFG_USE_CLICK */
+
                 btn->time_change = mstime; /* Button state has now changed */
             }
         } else {
+#if LWBTN_CFG_USE_CLICK
             /* 
              * Based on te configuration, this part of the code
              * will send on-click event after certain timeout.
@@ -285,6 +289,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                     btn->click.cnt = 0;
                 }
             }
+#endif /* LWBTN_CFG_USE_CLICK */
         }
     }
 

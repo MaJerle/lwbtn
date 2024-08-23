@@ -1,7 +1,7 @@
-#include "lwbtn/lwbtn.h"
-#include "windows.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "lwbtn/lwbtn.h"
+#include "windows.h"
 
 static LARGE_INTEGER freq, sys_start_time;
 static uint32_t get_tick(void);
@@ -68,19 +68,37 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     } else if (evt == LWBTN_EVT_ONRELEASE) {
         s = "ONRELEASE";
         color = FOREGROUND_BLUE;
+#if LWBTN_CFG_USE_CLICK
     } else if (evt == LWBTN_EVT_ONCLICK) {
         s = "  ONCLICK";
         color = FOREGROUND_RED | FOREGROUND_GREEN;
+#endif /* LWBTN_CFG_USE_CLICK */
     } else {
         s = "  UNKNOWN";
         color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
 #if LWBTN_CFG_USE_KEEPALIVE
     keepalive_cnt = btn->keepalive.cnt;
-#endif
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
     SetConsoleTextAttribute(hConsole, color);
-    printf("[%7u][%6u] CH: %c, evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)get_tick(),
-           (unsigned)diff_time, *(int*)btn->arg, s, (unsigned)keepalive_cnt, (unsigned)btn->click.cnt);
+    printf("[%7u][%6u] CH: %c, evt: %s"
+#if LWBTN_CFG_USE_KEEPALIVE
+           ", keep-alive cnt: %3u"
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+#if LWBTN_CFG_USE_CLICK
+           ", click cnt: %3u"
+#endif /* LWBTN_CFG_USE_CLICK */
+           "\r\n",
+           (unsigned)get_tick(), (unsigned)diff_time, *(int*)btn->arg, s
+#if LWBTN_CFG_USE_KEEPALIVE
+           ,
+           (unsigned)keepalive_cnt
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+#if LWBTN_CFG_USE_CLICK
+           ,
+           (unsigned)btn->click.cnt
+#endif /* LWBTN_CFG_USE_CLICK */
+    );
     SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
     (void)lw;
 }

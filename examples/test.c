@@ -32,13 +32,13 @@ typedef struct {
 #define MAX_TIME_MS 0xFFFF
 
 /* Tests to run */
-#define TEST1       1
-#define TEST2       1
-#define TEST3       1
-#define TEST4       1
-#define TEST5       1
-#define TEST6       1
-#define TEST7       1
+#define TEST1       (1 && LWBTN_CFG_USE_CLICK)
+#define TEST2       (1 && LWBTN_CFG_USE_CLICK)
+#define TEST3       (1 && LWBTN_CFG_USE_CLICK)
+#define TEST4       (1 && LWBTN_CFG_USE_CLICK)
+#define TEST5       (1 && LWBTN_CFG_USE_CLICK)
+#define TEST6       (1)
+#define TEST7       (1 && LWBTN_CFG_USE_CLICK)
 
 /* List of used buttons -> test case */
 static lwbtn_btn_t btns[1];
@@ -311,7 +311,7 @@ prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
 static void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
 #if defined(WIN32)
-    const char* s;
+    const char* s = NULL;
     uint32_t color, keepalive_cnt = 0, diff_time;
     static uint32_t time_prev;
     static uint32_t array_index = 0;
@@ -356,20 +356,38 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     } else if (evt == LWBTN_EVT_ONRELEASE) {
         s = "ONRELEASE";
         color = FOREGROUND_BLUE;
+#if LWBTN_CFG_USE_CLICK
     } else if (evt == LWBTN_EVT_ONCLICK) {
         s = "  ONCLICK";
         color = FOREGROUND_RED | FOREGROUND_GREEN;
         is_click = 1;
 
         test_errors += test_evt_data == NULL || test_evt_data->conseq_clicks != btn->click.cnt;
+#endif /* LWBTN_CFG_USE_CLICK */
     } else {
         s = "  UNKNOWN";
         color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
     }
 
     SetConsoleTextAttribute(hConsole, color);
-    printf("[%7u][%6u] evt: %s, keep-alive cnt: %3u, click cnt: %3u\r\n", (unsigned)time_current, (unsigned)diff_time,
-           s, (unsigned)keepalive_cnt, (unsigned)btn->click.cnt);
+    printf("[%7u][%6u] evt: %s"
+#if LWBTN_CFG_USE_KEEPALIVE
+           ", keep-alive cnt: %3u"
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+#if LWBTN_CFG_USE_CLICK
+           ", click cnt: %3u"
+#endif /* LWBTN_CFG_USE_CLICK */
+           "\r\n",
+           (unsigned)time_current, (unsigned)diff_time, s
+#if LWBTN_CFG_USE_KEEPALIVE
+           ,
+           (unsigned)keepalive_cnt
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+#if LWBTN_CFG_USE_CLICK
+           ,
+           (unsigned)btn->click.cnt
+#endif /* LWBTN_CFG_USE_CLICK */
+    );
     if (test_errors > 0) {
         printf("TEST FAILED...\r\n");
     }

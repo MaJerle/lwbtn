@@ -83,6 +83,19 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Enables `1` or disables `0` click event management.
+ * 
+ * Click event is when button is debounced, pressed and released within valid
+ * time between the both events.
+ * 
+ * When this feature is disabled, LwBTN can act as a simple debounce-only lib,
+ * and will only provide events to user such as "on-press" and "on-release"
+ */
+#ifndef LWBTN_CFG_USE_CLICK
+#define LWBTN_CFG_USE_CLICK 1
+#endif
+
+/**
  * \brief           Minimum debounce time for press event in units of milliseconds
  * 
  * This is the time when the input shall have stable active level to detect valid *onpress* event.
