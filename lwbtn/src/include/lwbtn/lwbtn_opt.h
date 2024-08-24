@@ -329,6 +329,9 @@ extern "C" {
  *          Button state is checked with the callback at least until manual state API function is called.
  * 
  *          This allows multiple build configurations for various button types
+ * 
+ * \note            When in manual mode, it is the responsibility of the application
+ *                  to manually set the initial state to "inactive" by using \ref lwbtn_set_btn_state function
  */
 #ifndef LWBTN_CFG_GET_STATE_MODE
 #define LWBTN_CFG_GET_STATE_MODE LWBTN_GET_STATE_MODE_CALLBACK

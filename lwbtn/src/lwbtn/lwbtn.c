@@ -114,11 +114,14 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
     new_state = LWBTN_BTN_GET_STATE(lwobj, btn);
 
     /* 
-     * First state must be "inactive" one, before
+     * First state must be "inactive" before
      * any further button state is being processed.
      * 
      * This is to prevent initial detected state on hardware errors,
-     * or when button is kept pressed after the system/lib reset
+     * or when button is kept pressed after the system/lib reset.
+     * 
+     * When user uses manual state set (no callback system),
+     * it is up to user to first call "set state" function and set state to inactive
      */
     if (!(btn->flags & LWBTN_FLAG_FIRST_INACTIVE_RCVD)) {
         if (new_state) {
