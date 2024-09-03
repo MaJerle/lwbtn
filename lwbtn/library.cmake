@@ -1,4 +1,4 @@
-# 
+#
 # LIB_PREFIX: LWBTN
 #
 # This file provides set of variables for end user
@@ -15,7 +15,7 @@
 set(LWBTN_CUSTOM_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib_inc)
 
 # Library core sources
-set(lwbtn_core_SRCS 
+set(lwbtn_core_SRCS
     ${CMAKE_CURRENT_LIST_DIR}/src/lwbtn/lwbtn.c
 )
 
@@ -26,9 +26,9 @@ set(lwbtn_include_DIRS
 )
 
 # Register library to the system
-add_library(lwbtn INTERFACE)
-target_sources(lwbtn INTERFACE ${lwbtn_core_SRCS})
-target_include_directories(lwbtn INTERFACE ${lwbtn_include_DIRS})
+add_library(lwbtn)
+target_sources(lwbtn PRIVATE ${lwbtn_core_SRCS})
+target_include_directories(lwbtn PUBLIC ${lwbtn_include_DIRS})
 target_compile_options(lwbtn PRIVATE ${LWBTN_COMPILE_OPTIONS})
 target_compile_definitions(lwbtn PRIVATE ${LWBTN_COMPILE_DEFINITIONS})
 
@@ -39,4 +39,5 @@ if(NOT LWBTN_OPTS_FILE)
 else()
     message(STATUS "Using custom lwbtn_opts.h file from ${LWBTN_OPTS_FILE}")
 endif()
+
 configure_file(${LWBTN_OPTS_FILE} ${LWBTN_CUSTOM_INC_DIR}/lwbtn_opts.h COPYONLY)
