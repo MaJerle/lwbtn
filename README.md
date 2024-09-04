@@ -1,4 +1,4 @@
-# Lightweight event manager
+# Lightweight button manager
 
 <h3>Read first: <a href="http://docs.majerle.eu/projects/lwbtn/">Documentation</a></h3>
 
