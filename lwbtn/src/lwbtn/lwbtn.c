@@ -1,6 +1,6 @@
 /**
  * \file            lwbtn.c
- * \brief           Lightweight event system
+ * \brief           Lightweight button system
  */
 
 /*
