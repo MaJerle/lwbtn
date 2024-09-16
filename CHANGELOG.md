@@ -5,6 +5,7 @@
 - Add detection of the first button state to be inactive before debouncing can even start
 - Add macro `LWBTN_CFG_USE_CLICK` with default value to keep click event enabled (backward compatibility) and an option to disable *click* events
 - Rework library CMake with removed INTERFACE type
+- Add `LWBTN_CFG_TYPE_VARTYPE` config type to allow user to select *time* variable type (typically `uint32_t` or `uint16_t`)
 
 ## v1.1.0
 

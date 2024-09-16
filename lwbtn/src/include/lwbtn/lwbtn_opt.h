@@ -347,6 +347,21 @@ extern "C" {
 #endif
 
 /**
+ * \brief           Default variable type for the time values.
+ * 
+ *                  Value defines the time type (time is always in milliseconds)
+ *                  and allows users to use 32-bit or 16-bit time, depending
+ *                  on the system that runs the library.
+ * 
+ * \note            If system uses `16-bit` timer for systick,
+ *                  one can set this config to `uint16_t`.
+ * 
+ */
+#ifndef LWBTN_CFG_TIME_VARTYPE
+#define LWBTN_CFG_TYPE_VARTYPE uint32_t
+#endif
+
+/**
  * \}
  */
 

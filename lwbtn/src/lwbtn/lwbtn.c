@@ -46,36 +46,36 @@
     ((uint16_t)0x0004) /*!< We are waiting for first inactive state before we continue further */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
-#define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) (uint32_t)((btn)->time_debounce)
+#define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) ((lwbtn_time_t)((btn)->time_debounce))
 #else
-#define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) (uint32_t) LWBTN_CFG_TIME_DEBOUNCE_PRESS
+#define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) ((lwbtn_time_t)LWBTN_CFG_TIME_DEBOUNCE_PRESS)
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC
-#define LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn) (uint32_t)((btn)->time_debounce_release)
+#define LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn) ((lwbtn_time_t)((btn)->time_debounce_release))
 #else
-#define LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn) (uint32_t) LWBTN_CFG_TIME_DEBOUNCE_RELEASE
+#define LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn) ((lwbtn_time_t)LWBTN_CFG_TIME_DEBOUNCE_RELEASE)
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC */
 
 #if LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC
-#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) ((btn)->time_click_pressed_min)
+#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) ((lwbtn_time_t)((btn)->time_click_pressed_min))
 #else
-#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) LWBTN_CFG_TIME_CLICK_MIN
+#define LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn) ((lwbtn_time_t)LWBTN_CFG_TIME_CLICK_MIN)
 #endif /* LWBTN_CFG_TIME_CLICK_MIN_DYNAMIC */
 #if LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC
-#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) ((btn)->time_click_pressed_max)
+#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) ((lwbtn_time_t)((btn)->time_click_pressed_max))
 #else
-#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) LWBTN_CFG_TIME_CLICK_MAX
+#define LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn) ((lwbtn_time_t)LWBTN_CFG_TIME_CLICK_MAX)
 #endif /* LWBTN_CFG_TIME_CLICK_MAX_DYNAMIC */
 #if LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC
-#define LWBTN_TIME_CLICK_MAX_MULTI(btn) ((btn)->time_click_multi_max)
+#define LWBTN_TIME_CLICK_MAX_MULTI(btn) ((lwbtn_time_t)((btn)->time_click_multi_max))
 #else
-#define LWBTN_TIME_CLICK_MAX_MULTI(btn) LWBTN_CFG_TIME_CLICK_MULTI_MAX
+#define LWBTN_TIME_CLICK_MAX_MULTI(btn) ((lwbtn_time_t)LWBTN_CFG_TIME_CLICK_MULTI_MAX)
 #endif /* LWBTN_CFG_TIME_CLICK_MULTI_MAX_DYNAMIC */
 #if LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC
-#define LWBTN_TIME_KEEPALIVE_PERIOD(btn) ((btn)->time_keepalive_period)
+#define LWBTN_TIME_KEEPALIVE_PERIOD(btn) ((lwbtn_time_t)((btn)->time_keepalive_period))
 #else
-#define LWBTN_TIME_KEEPALIVE_PERIOD(btn) LWBTN_CFG_TIME_KEEPALIVE_PERIOD
+#define LWBTN_TIME_KEEPALIVE_PERIOD(btn) ((lwbtn_time_t)LWBTN_CFG_TIME_KEEPALIVE_PERIOD)
 #endif /* LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC */
 #if LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC
 #define LWBTN_CLICK_MAX_CONSECUTIVE(btn) ((btn)->max_consecutive)
@@ -107,7 +107,7 @@ static lwbtn_t lwbtn_default;
  * \param[in]       mstime: Current milliseconds system time
  */
 void
-prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
+prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
     uint8_t new_state;
 
     /* Get button state */
@@ -150,7 +150,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
              * - Config debounce time for press is more than `0`
              */
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_PRESS > 0
-            if ((mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn))
+            if ((lwbtn_time_t)(mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn))
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_PRESS> 0 */
             {
 #if !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
@@ -176,16 +176,14 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
 
                 btn->time_change = mstime; /* Button state has now changed */
             }
-        }
-
-        /*
-         * Handle keep alive, but only if on-press event has been sent
-         *
-         * Keep alive is sent when valid press is being detected
-         */
-        else {
 #if LWBTN_CFG_USE_KEEPALIVE
-            while ((mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
+        } else {
+            /*
+             * Handle keep alive, but only if on-press event has been sent
+             *
+             * Keep alive is sent when valid press is being detected
+             */
+            while ((lwbtn_time_t)(mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                 btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                 ++btn->keepalive.cnt;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
@@ -218,8 +216,8 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
 
 #if LWBTN_CFG_USE_CLICK
                 /* Check time validity for click event */
-                if ((mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)
-                    && (mstime - btn->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn)) {
+                if ((lwbtn_time_t)(mstime - btn->time_change) >= LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)
+                    && (lwbtn_time_t)(mstime - btn->time_change) <= LWBTN_TIME_CLICK_GET_PRESSED_MAX(btn)) {
 
                     /*
                      * Increase consecutive clicks if max not reached yet
@@ -228,7 +226,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                      * Otherwise we consider click as fresh one
                      */
                     if (btn->click.cnt > 0 && btn->click.cnt < LWBTN_CLICK_MAX_CONSECUTIVE(btn)
-                        && (mstime - btn->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
+                        && (lwbtn_time_t)(mstime - btn->click.last_time) < LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
                         ++btn->click.cnt;
                     } else {
                         /*
@@ -248,7 +246,8 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
                 } else {
 #if LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS
                     /* If last press was too short, and previous sequence of clicks was positive, send event to user */
-                    if (btn->click.cnt > 0 && (mstime - btn->time_change) < LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)) {
+                    if (btn->click.cnt > 0
+                        && (lwbtn_time_t)(mstime - btn->time_change) < LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)) {
                         lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                     }
 #endif /* LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS */
@@ -276,18 +275,18 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
 
                 btn->time_change = mstime; /* Button state has now changed */
             }
-        } else {
 #if LWBTN_CFG_USE_CLICK
+        } else {
             /* 
              * Based on te configuration, this part of the code
              * will send on-click event after certain timeout.
              * 
-             * This feature is useful if users prefers multi-click feature
+             * This feature is useful if user prefers multi-click feature
              * that is reported only after last click event happened,
              * including number of clicks made by user
              */
             if (btn->click.cnt > 0) {
-                if ((mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
+                if ((lwbtn_time_t)(mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
                     lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
@@ -369,7 +368,7 @@ lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_st
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime) {
+lwbtn_process_ex(lwbtn_t* lwobj, lwbtn_time_t mstime) {
     lwobj = LWBTN_GET_LWOBJ(lwobj);
 
     /* Process all buttons */
@@ -392,7 +391,7 @@ lwbtn_process_ex(lwbtn_t* lwobj, uint32_t mstime) {
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
-lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, uint32_t mstime) {
+lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
     if (btn != NULL) {
         prv_process_btn(LWBTN_GET_LWOBJ(lwobj), btn, mstime);
         return 1;
