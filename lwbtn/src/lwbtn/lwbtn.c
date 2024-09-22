@@ -106,7 +106,7 @@ static lwbtn_t lwbtn_default;
  * \param[in]       btn: Button instance to process
  * \param[in]       mstime: Current milliseconds system time
  */
-void
+static void
 prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
     uint8_t new_state;
 
