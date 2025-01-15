@@ -43,7 +43,8 @@
     ((uint16_t)0x0002) /*!< Flag indicates that user wants to manually set button state.
                                                     Do not call "get_state" function */
 #define LWBTN_FLAG_FIRST_INACTIVE_RCVD                                                                                 \
-    ((uint16_t)0x0004) /*!< We are waiting for first inactive state before we continue further */
+    ((uint16_t)0x0004)                      /*!< We are waiting for first inactive state before we continue further */
+#define LWBTN_FLAG_RESET ((uint16_t)0x0008) /*!< Reset called on the button */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
 #define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) ((lwbtn_time_t)((btn)->time_debounce))
@@ -122,16 +123,36 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
      * 
      * When user uses manual state set (no callback system),
      * it is up to user to first call "set state" function and set state to inactive
+     * 
+     * This features is also used for "button reset"
      */
     if (!(btn->flags & LWBTN_FLAG_FIRST_INACTIVE_RCVD)) {
         if (new_state) {
             return;
         }
-        btn->flags |= LWBTN_FLAG_FIRST_INACTIVE_RCVD;
+
+        /* Reset all states */
+        btn->last_state = 0;
+        btn->flags = LWBTN_FLAG_FIRST_INACTIVE_RCVD;
     }
 
+#if 0
+    /*
+     * When the button is pressed, user can manually
+     * reset the button
+     */
+    if ((btn->flags) & LWBTN_FLAG_RESET) {
+        btn->last_state = 0;             /* Disable the state */
+        btn->flags &= LWBTN_FLAG_RESET; /* Keep reset, delete others */
+        if (new_state) {
+            return;
+        }
+        btn->flags &= ~LWBTN_FLAG_RESET; /* Start over */
+    }
+#endif
+
     /* Button state has just changed */
-    if (new_state != btn->old_state) {
+    if (new_state != btn->last_state) {
         btn->time_state_change = mstime;
     }
 
@@ -295,7 +316,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
         }
     }
 
-    btn->old_state = new_state;
+    btn->last_state = new_state;
 }
 
 /**
@@ -429,4 +450,40 @@ lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state) {
 uint8_t
 lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
     return btn != NULL && (btn->flags & LWBTN_FLAG_ONPRESS_SENT);
+}
+
+/**
+ * \brief           Reset button[s] state to default
+ * 
+ *                  When reset is called, if button is pressed (active)
+ *                  no further events will be called up until we receive
+ *                  the new valid press action.
+ * 
+ *                  A typical use case would be when application needs to react
+ *                  on a long press (several keep alive events).
+ *                  A reaction may change the eg. screen view where new screen (menu screen)
+ *                  performs some other activity on button hold event.
+ * 
+ *                  Resetting the button state before switching the internal application state,
+ *                  forces the user to re-press the button to restart the action for the new
+ *                  hold activity.
+ * 
+ * \note            If button is reset during active time, there will be no further events
+ *                  for this button sent to the application, up until a new valid on-press is detected
+ * 
+ * \param           lwobj: Object to reset buttons. Set to non-NULL to reset
+ *                      all buttons in an object
+ * \param           btn: Button object to reset. Optional parameter.
+ *                      When non-NULL, button is reset
+ * \return          `1` on success, `0` otherwise
+ */
+uint8_t
+lwbtn_reset(lwbtn_t* lwobj, lwbtn_btn_t* btn) {
+    for (size_t idx = 0; idx < (lwobj != NULL ? lwobj->btns_cnt : 0); ++idx) {
+        lwobj->btns[idx].flags &= ~LWBTN_FLAG_FIRST_INACTIVE_RCVD;
+    }
+    if (btn != NULL) {
+        btn->flags &= ~LWBTN_FLAG_FIRST_INACTIVE_RCVD;
+    }
+    return 1;
 }

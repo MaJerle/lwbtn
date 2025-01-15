@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "lwbtn/lwbtn.h"
 #include "test.h"
 #if defined(WIN32)
 #include "windows.h"

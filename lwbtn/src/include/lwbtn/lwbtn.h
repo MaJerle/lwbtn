@@ -112,7 +112,7 @@ typedef struct lwbtn_btn {
     uint8_t curr_state;             /*!< Current button state to be processed. It is used 
                                     to keep track when application manually sets the button state */
 #endif                              /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
-    uint8_t old_state;              /*!< Old button state - `1` means active, `0` means inactive */
+    uint8_t last_state;             /*!< Last button state - `1` means active, `0` means inactive */
     lwbtn_time_t time_change;       /*!< Time in ms when button state got changed last time after valid debounce */
     lwbtn_time_t time_state_change; /*!< Time in ms when button state got changed last time */
 
@@ -174,6 +174,7 @@ uint8_t lwbtn_process_ex(lwbtn_t* lwobj, lwbtn_time_t mstime);
 uint8_t lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime);
 uint8_t lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state);
 uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
+uint8_t lwbtn_reset(lwbtn_t* lwobj, lwbtn_btn_t* btn);
 
 /**
  * \brief           Initialize LwBTN library with buttons on default button group
