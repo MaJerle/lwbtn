@@ -455,18 +455,18 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
 /**
  * \brief           Reset button[s] state to default
  * 
- *                  When reset is called, if button is pressed (active)
+ *                  When reset is called, and if button is pressed (active),
  *                  no further events will be called up until we receive
  *                  the new valid press action.
  * 
  *                  A typical use case would be when application needs to react
  *                  on a long press (several keep alive events).
- *                  A reaction may change the eg. screen view where new screen (menu screen)
- *                  performs some other activity on button hold event.
- * 
- *                  Resetting the button state before switching the internal application state,
- *                  forces the user to re-press the button to restart the action for the new
- *                  hold activity.
+ *                  
+ *                  Consider the use case where user runs the GUI and long press changes the screen.
+ *                  The new screen has its own button handling method, which performs some other action (eg. "go home" action).
+ *                  
+ *                  Calling the reset function will prevent new screen to continue receiving the events
+ *                  and forces the user to release the button and press it again.
  * 
  * \note            If button is reset during active time, there will be no further events
  *                  for this button sent to the application, up until a new valid on-press is detected
