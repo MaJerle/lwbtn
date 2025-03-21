@@ -1,31 +1,14 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "lwbtn/lwbtn.h"
 
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 
-/* External test function */
-extern void test_stm32(void);
+static uint8_t prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn);
+static void prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt);
+
+/* Local variables */
+static lwbtn_btn_t btns[1];
 
 /**
   * @brief  The application entry point.
@@ -42,10 +25,34 @@ main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
 
-    /* Run test program */
-    test_stm32();
+    /* Define buttons */
+    lwbtn_init_ex(NULL, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
 
-    while (1) {}
+    while (1) {
+        /* Periodic processing function */
+        lwbtn_process_ex(NULL, HAL_GetTick());
+    }
+}
+
+/* Get button state */
+static uint8_t
+prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
+    return HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == GPIO_PIN_SET;
+}
+
+/* Process button event */
+static void
+prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
+    switch (evt) {
+        case LWBTN_EVT_ONCLICK: {
+            /* Toggle led on btn */
+            /* Button click event occurred */
+            HAL_GPIO_TogglePin(OUT_GPIO_Port, OUT_Pin);
+            break;
+        }
+        /* Manage other events... */
+        default: break;
+    }
 }
 
 /**

@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.lcdjson": "json",
         "lwevt_types.h": "c",
         "lwevt_type.h": "c",
         "lwevt.h": "c",
@@ -10,7 +11,8 @@
         "lwbtn_opts.h": "c",
         "compare": "c",
         "bitset": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "test.h": "c"
     },
     "esbonio.sphinx.confDir": "",
     "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true

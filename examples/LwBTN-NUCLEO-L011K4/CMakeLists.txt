@@ -29,8 +29,6 @@ set(cpu_PARAMS
 
 # Sources
 set(sources_SRCS
-    # Add test file
-    ${CMAKE_CURRENT_SOURCE_DIR}/../test.c
 )
 
 # Include directories for each compiler

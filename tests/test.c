@@ -2,13 +2,7 @@
 #include <stdlib.h>
 #include "lwbtn/lwbtn.h"
 #include "test.h"
-#if defined(WIN32)
 #include "windows.h"
-#endif /* defined(WIN32) */
-#if defined(STM32)
-#include "main.h"
-#include "stm32l0xx_hal.h"
-#endif /* defined(STM32) */
 
 /**
  * \brief           Input state information
@@ -45,20 +39,27 @@ typedef struct {
 static lwbtn_btn_t btns[1];
 static volatile uint32_t time_current;
 static volatile uint8_t is_pressed = 0, is_click = 0;
+static int test_passed;
 
 /* Set button state -> used for test purposes */
-#define BTN_STATE(_state_, _duration_)       {.state = (_state_), .duration = (_duration_)}
+#define BTN_STATE(_state_, _duration_)                                                                                 \
+    { .state = (_state_), .duration = (_duration_) }
 
-#define BTN_PRINT(text_to_print)             {.text = (text_to_print)}
+#define BTN_PRINT(text_to_print)                                                                                       \
+    { .text = (text_to_print) }
 
 /* On-Press event */
-#define BTN_EVENT_ONPRESS()                  {.evt = LWBTN_EVT_ONPRESS}
+#define BTN_EVENT_ONPRESS()                                                                                            \
+    { .evt = LWBTN_EVT_ONPRESS }
 /* On-Release event */
-#define BTN_EVENT_ONRELEASE()                {.evt = LWBTN_EVT_ONRELEASE}
+#define BTN_EVENT_ONRELEASE()                                                                                          \
+    { .evt = LWBTN_EVT_ONRELEASE }
 /* On-Click event */
-#define BTN_EVENT_ONCLICK(_conseq_clicks_)   {.evt = LWBTN_EVT_ONCLICK, .conseq_clicks = (_conseq_clicks_)}
+#define BTN_EVENT_ONCLICK(_conseq_clicks_)                                                                             \
+    { .evt = LWBTN_EVT_ONCLICK, .conseq_clicks = (_conseq_clicks_) }
 /* On-Click event */
-#define BTN_EVENT_KEEPALIVE(_keepalive_cnt_) {.evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_)}
+#define BTN_EVENT_KEEPALIVE(_keepalive_cnt_)                                                                           \
+    { .evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_) }
 
 /*
  * Simulate click event
@@ -299,10 +300,6 @@ static uint8_t
 prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
     uint8_t state = prv_get_state_for_time(time_current);
 
-#if defined(STM32)
-    HAL_GPIO_WritePin(BTN_GPIO_Port, BTN_Pin, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
-#endif /* defined(STM32) */
-
     (void)btn;
     (void)lw;
     return state;
@@ -311,7 +308,6 @@ prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
 /* Process button event */
 static void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
-#if defined(WIN32)
     const char* s = NULL;
     uint32_t color, keepalive_cnt = 0, diff_time;
     static uint32_t time_prev;
@@ -322,11 +318,10 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     /* Test errors variable */
     uint32_t test_errors = 0;
     if (array_index >= sizeof(test_events) / sizeof(test_events[0])) {
-#if defined(WIN32)
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
         printf("[%7u] ERROR! Array index is out of bounds!\r\n", (unsigned)time_current);
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-#endif /* defined(WIN32) */
+        test_passed = -1;
     } else {
         test_evt_data = &test_events[array_index];
     }
@@ -391,24 +386,13 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     );
     if (test_errors > 0) {
         printf("TEST FAILED...\r\n");
+        test_passed = -1;
     }
     SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
     ++array_index; /* Go to next step in next event */
-#else
-    /* Control GPIO pin in STM32 */
-    if (evt == LWBTN_EVT_ONPRESS) {
-        HAL_GPIO_WritePin(OUT_GPIO_Port, OUT_Pin, GPIO_PIN_SET);
-    } else if (evt == LWBTN_EVT_ONRELEASE) {
-        HAL_GPIO_WritePin(OUT_GPIO_Port, OUT_Pin, GPIO_PIN_RESET);
-    } else if (evt == LWBTN_EVT_ONCLICK) {
-        is_click = 1;
-        HAL_GPIO_WritePin(OUT_CLICK_GPIO_Port, OUT_CLICK_Pin, GPIO_PIN_SET);
-    }
-#endif /* defined(WIN32) */
     (void)lw;
 }
 
-#if defined(WIN32)
 /**
  * \brief           Test function
  */
@@ -416,6 +400,8 @@ int
 test_win32(void) {
     printf("Test running\r\n");
 
+    test_passed = 0;
+
     /* Define buttons */
     lwbtn_init_ex(NULL, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
 
@@ -424,37 +410,6 @@ test_win32(void) {
         time_current = i; /* Set current time used in callback */
         lwbtn_process(i); /* Now run processing */
     }
-    return 0;
+    printf("Test done\r\n");
+    return test_passed;
 }
-#endif /* defined(WIN32) */
-
-#if defined(STM32)
-
-int
-test_stm32(void) {
-    uint32_t tick, tick_old = 0;
-
-    /* Define buttons */
-    lwbtn_init_ex(NULL, btns, sizeof(btns) / sizeof(btns[0]), prv_btn_get_state, prv_btn_event);
-
-    /* Counter simulates ms tick */
-    tick_old = 0;
-    for (size_t i = 0; i < MAX_TIME_MS; ++i) {
-        /* Wait for a tick to have real time data */
-        while ((tick = HAL_GetTick()) == tick_old) {}
-        tick_old = tick;
-
-        /* Reset from previous click event */
-        if (is_click) {
-            HAL_GPIO_WritePin(OUT_CLICK_GPIO_Port, OUT_CLICK_Pin, GPIO_PIN_RESET);
-            is_click = 0;
-        }
-
-        /* Set current tick time in ms */
-        time_current = i; /* Set current time used in callback */
-        lwbtn_process(i); /* Now run processing */
-    }
-    return 0;
-}
-
-#endif /* defined(STM32) */
