@@ -42,24 +42,18 @@ static volatile uint8_t is_pressed = 0, is_click = 0;
 static int test_passed;
 
 /* Set button state -> used for test purposes */
-#define BTN_STATE(_state_, _duration_)                                                                                 \
-    { .state = (_state_), .duration = (_duration_) }
+#define BTN_STATE(_state_, _duration_)       {.state = (_state_), .duration = (_duration_)}
 
-#define BTN_PRINT(text_to_print)                                                                                       \
-    { .text = (text_to_print) }
+#define BTN_PRINT(text_to_print)             {.text = (text_to_print)}
 
 /* On-Press event */
-#define BTN_EVENT_ONPRESS()                                                                                            \
-    { .evt = LWBTN_EVT_ONPRESS }
+#define BTN_EVENT_ONPRESS()                  {.evt = LWBTN_EVT_ONPRESS}
 /* On-Release event */
-#define BTN_EVENT_ONRELEASE()                                                                                          \
-    { .evt = LWBTN_EVT_ONRELEASE }
+#define BTN_EVENT_ONRELEASE()                {.evt = LWBTN_EVT_ONRELEASE}
 /* On-Click event */
-#define BTN_EVENT_ONCLICK(_conseq_clicks_)                                                                             \
-    { .evt = LWBTN_EVT_ONCLICK, .conseq_clicks = (_conseq_clicks_) }
+#define BTN_EVENT_ONCLICK(_conseq_clicks_)   {.evt = LWBTN_EVT_ONCLICK, .conseq_clicks = (_conseq_clicks_)}
 /* On-Click event */
-#define BTN_EVENT_KEEPALIVE(_keepalive_cnt_)                                                                           \
-    { .evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_) }
+#define BTN_EVENT_KEEPALIVE(_keepalive_cnt_) {.evt = LWBTN_EVT_KEEPALIVE, .keepalive_cnt = (_keepalive_cnt_)}
 
 /*
  * Simulate click event
@@ -397,9 +391,7 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
  * \brief           Test function
  */
 int
-test_win32(void) {
-    printf("Test running\r\n");
-
+test_run(void) {
     test_passed = 0;
 
     /* Define buttons */
@@ -410,6 +402,5 @@ test_win32(void) {
         time_current = i; /* Set current time used in callback */
         lwbtn_process(i); /* Now run processing */
     }
-    printf("Test done\r\n");
     return test_passed;
 }
