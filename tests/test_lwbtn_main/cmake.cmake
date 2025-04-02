@@ -6,4 +6,4 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 # Options file
-set(LWDBTNOPTS_FILE ${CMAKE_CURRENT_LIST_DIR}/lwdtc_opts.h)
+set(LWBTN_OPTS_FILE ${CMAKE_CURRENT_LIST_DIR}/lwbtn_opts.h)
