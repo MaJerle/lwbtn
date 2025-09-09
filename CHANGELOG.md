@@ -7,6 +7,7 @@
 - Rework library CMake with removed INTERFACE type
 - Add `LWBTN_CFG_TYPE_VARTYPE` config type to allow user to select *time* variable type (typically `uint32_t` or `uint16_t`)
 - Add `lwbtn_reset` to manually reset the button state
+- Fix the platformio library package description
 
 ## v1.1.0
 

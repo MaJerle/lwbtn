@@ -32,6 +32,7 @@
     },
     "build": {
         "includeDir": "lwbtn/src/include",
-		"srcDir": "lwbtn/src/lwbtn"
+        "srcDir": ".",
+        "srcFilter": "+<lwbtn>"
     }
 }
