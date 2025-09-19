@@ -2,6 +2,10 @@
 
 ## Develop
 
+## v1.2.1
+
+- Fix the bug with `LWBTN_CFG_TYPE_VARTYPE` being wrongly named and replaced with `LWBTN_CFG_TIME_VARTYPE`
+
 ## v1.2.0
 
 - Add detection of the first button state to be inactive before debouncing can even start

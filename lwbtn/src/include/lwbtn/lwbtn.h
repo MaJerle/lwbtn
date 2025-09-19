@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.2.0
+ * Version:         v1.2.1
  */
 #ifndef LWBTN_HDR_H
 #define LWBTN_HDR_H
@@ -70,7 +70,7 @@ struct lwbtn;
 /**
  * \brief           Time variable type
  */
-typedef LWBTN_CFG_TYPE_VARTYPE lwbtn_time_t;
+typedef LWBTN_CFG_TIME_VARTYPE lwbtn_time_t;
 
 /**
  * \brief           List of button events

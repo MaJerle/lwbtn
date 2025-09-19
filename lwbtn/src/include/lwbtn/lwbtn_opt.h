@@ -29,7 +29,7 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.2.0
+ * Version:         v1.2.1
  */
 #ifndef LWBTN_OPT_HDR_H
 #define LWBTN_OPT_HDR_H
@@ -358,7 +358,7 @@ extern "C" {
  * 
  */
 #ifndef LWBTN_CFG_TIME_VARTYPE
-#define LWBTN_CFG_TYPE_VARTYPE uint32_t
+#define LWBTN_CFG_TIME_VARTYPE uint32_t
 #endif
 
 /**
