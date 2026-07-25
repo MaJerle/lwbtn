@@ -141,8 +141,8 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
         btn->time_state_change = mstime;
     }
 
-    /* Button is still pressed */
-    else if (new_state) {
+    /* Button is (still) pressed */
+    if (new_state) {
         /* 
          * Handle debounce and send on-press event
          *
@@ -198,7 +198,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
         }
     }
 
-    /* Button is still released */
+    /* Button is (still) released */
     else {
         /*
          * We only need to react if on-press event has even been started.
