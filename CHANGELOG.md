@@ -2,6 +2,9 @@
 
 ## Develop
 
+- Implement getters and setters for the dynamic features
+- Implement the consistent use of `lwbtn_time_t` for all time functions and interfaces 
+
 ## v1.2.1
 
 - Fix the bug with `LWBTN_CFG_TYPE_VARTYPE` being wrongly named and replaced with `LWBTN_CFG_TIME_VARTYPE`

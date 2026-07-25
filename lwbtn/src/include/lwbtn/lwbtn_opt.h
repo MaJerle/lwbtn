@@ -245,6 +245,8 @@ extern "C" {
  *                  then it is send to application just before valid next press event).
  *                  Configuration can be changed with \ref LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY macro
  * 
+ *                  Valid range is from `1` to `255`, an 8-bit number
+ * 
  * \sa              LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC, LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY
  */
 #ifndef LWBTN_CFG_CLICK_MAX_CONSECUTIVE

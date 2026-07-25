@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "lwbtn/lwbtn.h"
-
-extern int test_run(void);
+#include "test.h"
 
 int
 main(void) {

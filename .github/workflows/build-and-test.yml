@@ -1,4 +1,4 @@
-name: Windows CMake Build & Test
+name: CMake Build & Test
 
 on:
   push:
@@ -11,13 +11,23 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
       - name: Install MinGW
+        if: matrix.os == 'windows-latest'
         run: |
           choco install mingw --version=12.2.0 -y
           echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" >> $GITHUB_PATH

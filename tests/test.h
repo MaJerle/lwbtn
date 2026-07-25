@@ -13,6 +13,6 @@
 
 #include "lwbtn/lwbtn.h"
 
-int test_win32(void);
+int test_run(void);
 
 #endif /* TEST_HDR_H */

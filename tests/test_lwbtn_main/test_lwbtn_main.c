@@ -2,7 +2,13 @@
 #include <stdlib.h>
 #include "lwbtn/lwbtn.h"
 #include "test.h"
-#include "windows.h"
+
+/* ANSI escape codes for cross-platform colored terminal output */
+#define ANSI_COLOR_RED    "\x1b[31m"
+#define ANSI_COLOR_GREEN  "\x1b[32m"
+#define ANSI_COLOR_BLUE   "\x1b[34m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
+#define ANSI_COLOR_RESET  "\x1b[0m"
 
 /**
  * \brief           Input state information
@@ -303,18 +309,16 @@ prv_btn_get_state(struct lwbtn* lw, struct lwbtn_btn* btn) {
 static void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     const char* s = NULL;
-    uint32_t color, keepalive_cnt = 0, diff_time;
+    const char* color = NULL;
+    uint32_t keepalive_cnt = 0, diff_time, clicks_cnt = 0;
     static uint32_t time_prev;
     static uint32_t array_index = 0;
     const btn_test_evt_t* test_evt_data = NULL;
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
     /* Test errors variable */
     uint32_t test_errors = 0;
     if (array_index >= sizeof(test_events) / sizeof(test_events[0])) {
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-        printf("[%7u] ERROR! Array index is out of bounds!\r\n", (unsigned)time_current);
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        printf(ANSI_COLOR_RED "[%7u] ERROR! Array index is out of bounds!\r\n" ANSI_COLOR_RESET, (unsigned)time_current);
         test_passed = -1;
     } else {
         test_evt_data = &test_events[array_index];
@@ -324,8 +328,11 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
     diff_time = time_current - time_prev;
     time_prev = time_current;
 #if LWBTN_CFG_USE_KEEPALIVE
-    keepalive_cnt = btn->keepalive.cnt;
-#endif
+    keepalive_cnt = lwbtn_keepalive_get_count(btn);
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+#if LWBTN_CFG_USE_CLICK
+    clicks_cnt = lwbtn_click_get_count(btn);
+#endif /* LWBTN_CFG_USE_CLICK */
 
     /* Event type must match */
     test_errors += test_evt_data == NULL || test_evt_data->evt != evt;
@@ -335,54 +342,52 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
 #if LWBTN_CFG_USE_KEEPALIVE
     } else if (evt == LWBTN_EVT_KEEPALIVE) {
         s = "KEEPALIVE";
-        color = FOREGROUND_RED;
+        color = ANSI_COLOR_RED;
 
         test_errors += test_evt_data == NULL || test_evt_data->keepalive_cnt != keepalive_cnt;
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
     } else if (evt == LWBTN_EVT_ONPRESS) {
         s = "  ONPRESS";
-        color = FOREGROUND_GREEN;
+        color = ANSI_COLOR_GREEN;
         is_pressed = 1;
     } else if (evt == LWBTN_EVT_ONRELEASE) {
         s = "ONRELEASE";
-        color = FOREGROUND_BLUE;
+        color = ANSI_COLOR_BLUE;
 #if LWBTN_CFG_USE_CLICK
     } else if (evt == LWBTN_EVT_ONCLICK) {
         s = "  ONCLICK";
-        color = FOREGROUND_RED | FOREGROUND_GREEN;
+        color = ANSI_COLOR_YELLOW;
         is_click = 1;
 
-        test_errors += test_evt_data == NULL || test_evt_data->conseq_clicks != btn->click.cnt;
+        test_errors += test_evt_data == NULL || test_evt_data->conseq_clicks != clicks_cnt;
 #endif /* LWBTN_CFG_USE_CLICK */
     } else {
         s = "  UNKNOWN";
-        color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+        color = ANSI_COLOR_RESET;
     }
 
-    SetConsoleTextAttribute(hConsole, color);
-    printf("[%7u][%6u] evt: %s"
+    printf("%s[%7u][%6u] evt: %s"
 #if LWBTN_CFG_USE_KEEPALIVE
            ", keep-alive cnt: %3u"
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
 #if LWBTN_CFG_USE_CLICK
            ", click cnt: %3u"
 #endif /* LWBTN_CFG_USE_CLICK */
-           "\r\n",
-           (unsigned)time_current, (unsigned)diff_time, s
+           "\r\n" ANSI_COLOR_RESET,
+           color, (unsigned)time_current, (unsigned)diff_time, s
 #if LWBTN_CFG_USE_KEEPALIVE
            ,
            (unsigned)keepalive_cnt
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
 #if LWBTN_CFG_USE_CLICK
            ,
-           (unsigned)btn->click.cnt
+           (unsigned)clicks_cnt
 #endif /* LWBTN_CFG_USE_CLICK */
     );
     if (test_errors > 0) {
         printf("TEST FAILED...\r\n");
         test_passed = -1;
     }
-    SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
     ++array_index; /* Go to next step in next event */
     (void)lw;
 }
