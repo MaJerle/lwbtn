@@ -2,6 +2,10 @@
 
 ## Develop
 
+## v1.3.1
+
+- Fire the on-press/on-release events as soon as the transition happen. Do not wait next process cycle.
+
 ## v1.3.0
 
 - Implement getters and setters for the dynamic features
