@@ -2,6 +2,8 @@
 
 ## Develop
 
+## v1.3.0
+
 - Implement getters and setters for the dynamic features
 - Implement the consistent use of `lwbtn_time_t` for all time functions and interfaces 
 
