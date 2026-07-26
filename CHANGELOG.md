@@ -2,6 +2,8 @@
 
 ## Develop
 
+- Guard all optional functions with the conditional compilation depending on the user configuration
+
 ## v1.3.1
 
 - Fire the on-press/on-release events as soon as the transition happen. Do not wait next process cycle.

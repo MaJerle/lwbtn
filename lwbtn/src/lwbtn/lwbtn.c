@@ -408,24 +408,26 @@ lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
     return 0;
 }
 
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
+
 /**
  * \brief           Set button state to either "active" or "inactive".
+ *
+ * \note            Available only when \ref LWBTN_CFG_GET_STATE_MODE is NOT set to \ref LWBTN_GET_STATE_MODE_CALLBACK,
+ *                  which implies that user can use callback or direct (dynamic configuration) state set
+ *
  * \param[in]       btn: Button instance
  * \param[in]       state: New button state. `1` is for active (pressed), `0` is for inactive (released).
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
 lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state) {
-#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK
     btn->curr_state = state;
     btn->flags |= LWBTN_FLAG_MANUAL_STATE;
     return 1;
-#else  /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
-    (void)btn;
-    (void)state;
-    return 0;
-#endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK */
 }
+
+#endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
 
 /**
  * \brief           Check if button is active.
@@ -543,7 +545,7 @@ lwbtn_debounce_set_release_time(lwbtn_btn_t* btn, lwbtn_time_t time) {
 
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || __DOXYGEN__ */
 
-/* Click configuration functions */
+#if LWBTN_CFG_USE_CLICK || __DOXYGEN__
 
 /**
  * \brief           Get minimum pressed time for valid click event, for specific button
@@ -680,8 +682,6 @@ lwbtn_click_set_max_consecutive(lwbtn_btn_t* btn, uint8_t max) {
 }
 
 #endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_DYNAMIC || __DOXYGEN__ */
-
-#if LWBTN_CFG_USE_CLICK || __DOXYGEN__
 
 /**
  * \brief           Get number of consecutive click events on a button since the last events.

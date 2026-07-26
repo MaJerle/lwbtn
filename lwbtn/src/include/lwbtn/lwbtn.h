@@ -171,13 +171,18 @@ typedef struct lwbtn {
 #endif                               /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_MANUAL || __DOXYGEN__ */
 } lwbtn_t;
 
+/* Core functions */
 uint8_t lwbtn_init_ex(lwbtn_t* lwobj, lwbtn_btn_t* btns, uint16_t btns_cnt, lwbtn_get_state_fn get_state_fn,
                       lwbtn_evt_fn evt_fn);
 uint8_t lwbtn_process_ex(lwbtn_t* lwobj, lwbtn_time_t mstime);
 uint8_t lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime);
-uint8_t lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state);
-uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
 uint8_t lwbtn_reset(lwbtn_t* lwobj, lwbtn_btn_t* btn);
+uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
+
+/* State function */
+#if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
+uint8_t lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state);
+#endif /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
 
 /* Debounce configuration functions */
 lwbtn_time_t lwbtn_debounce_get_press_time(const lwbtn_btn_t* btn);
@@ -239,6 +244,7 @@ uint8_t lwbtn_click_get_count(const lwbtn_btn_t* btn);
  */
 #define lwbtn_process_btn(btn, mstime)                   lwbtn_process_btn_ex(NULL, (btn), (mstime))
 
+/* Keep alive functions */
 #if LWBTN_CFG_USE_KEEPALIVE || __DOXYGEN__
 
 lwbtn_time_t lwbtn_keepalive_get_period(const lwbtn_btn_t* btn);
