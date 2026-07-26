@@ -69,5 +69,17 @@
             },
             "problemMatcher": []
         },
+        {
+            "label": "Test: Run all tests",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "test.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/tests"
+            },
+            "problemMatcher": []
+        },
     ]
 }
