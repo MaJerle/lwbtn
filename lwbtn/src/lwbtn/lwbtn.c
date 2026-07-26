@@ -141,8 +141,34 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
         btn->time_state_change = mstime;
     }
 
-    /* Button is (still) pressed */
+#if !LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC && LWBTN_CFG_TIME_DEBOUNCE_PRESS > 0                                        \
+    && !LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC && LWBTN_CFG_TIME_DEBOUNCE_RELEASE > 0
+    /*
+     * When the debounce (press or release) is in a static configuration, known at a compile time,
+     * and the debounce time for both is enabled, we know that if the state has just changed,
+     * then we will not process the on-press or on-release events.
+     * 
+     * Because of that, we can keep the `else` in the building structure,
+     * which will cause the system for an earlier return when the initial if statement fires (above)
+     * that checks if the state has changed
+     */
+    else if (new_state) {
+#else
+    /* 
+     * When debounce is in dynamic mode (run-time configurable) or the static configuration 
+     * is configured as zero (no debouce), then:
+     * 
+     * - Dynamic: We don't know what is the runtime user config, so it may be we will have no debounce
+     * - Static: We know that user doesn't want debounce
+     * 
+     * When there is a possibility for disabled debounce, we want to immediately
+     * process the state change and not to wait next process function run.
+     * 
+     * In this case, we cannot use `else if`. The blocks shall be processed independently
+     */
     if (new_state) {
+#endif
+
         /* 
          * Handle debounce and send on-press event
          *
