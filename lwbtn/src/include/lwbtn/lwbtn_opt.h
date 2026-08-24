@@ -74,7 +74,7 @@ extern "C" {
  * \brief           Enables `1` or disables `0` periodic keep alive events.
  * 
  * Keep alive events are periodically sent to the application,
- * when input is kept in active state.s
+ * when input is kept in active state.
  * 
  * Default keep alive period is set with \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD macro
  */
@@ -321,13 +321,13 @@ extern "C" {
 /**
  * \brief           Sets the mode how new button state is acquired.
  * 
- * Different modes are availale, set with the level number:
+ * Different modes are available, set with the level number:
  * 
  * - `LWBTN_GET_STATE_MODE_CALLBACK`: State of the button is checked through *get state* callback function
  * - `LWBTN_GET_STATE_MODE_MANUAL`: Only manual state set is enabled. Application must set the button state with API functions.
  *          Callback API is not used.
  * - `LWBTN_GET_STATE_MODE_CALLBACK_OR_MANUAL`: State of the button is checked through *get state* callback function (by default).
- *          It enables API to manually set the state with approapriate function call.
+ *          It enables API to manually set the state with appropriate function call.
  *          Button state is checked with the callback at least until manual state API function is called.
  * 
  *          This allows multiple build configurations for various button types

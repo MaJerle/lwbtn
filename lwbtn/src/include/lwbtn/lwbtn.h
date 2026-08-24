@@ -90,7 +90,7 @@ typedef enum {
 /**
  * \brief           Button event function callback prototype
  * \param[in]       lwobj: LwBTN instance
- * \param[in]       btn: Button instance from array for which event occured
+ * \param[in]       btn: Button instance from array for which event occurred
  * \param[in]       evt: Event type
  */
 typedef void (*lwbtn_evt_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn, lwbtn_evt_t evt);

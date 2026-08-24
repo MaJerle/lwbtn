@@ -310,7 +310,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
 #if LWBTN_CFG_USE_CLICK
         } else {
             /* 
-             * Based on te configuration, this part of the code
+             * Based on the configuration, this part of the code
              * will send on-click event after certain timeout.
              * 
              * This feature is useful if user prefers multi-click feature
