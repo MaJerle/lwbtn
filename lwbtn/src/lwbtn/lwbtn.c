@@ -43,8 +43,7 @@
     ((uint16_t)0x0002) /*!< Flag indicates that user wants to manually set button state.
                                                     Do not call "get_state" function */
 #define LWBTN_FLAG_FIRST_INACTIVE_RCVD                                                                                 \
-    ((uint16_t)0x0004)                      /*!< We are waiting for first inactive state before we continue further */
-#define LWBTN_FLAG_RESET ((uint16_t)0x0008) /*!< Reset called on the button */
+    ((uint16_t)0x0004) /*!< We are waiting for first inactive state before we continue further */
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
 #define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) ((lwbtn_time_t)((btn)->time_debounce))
@@ -131,9 +130,9 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
             return;
         }
 
-        /* Reset all states */
+        /* Reset all states, but keep the manual-state selection (if any) intact */
         btn->last_state = 0;
-        btn->flags = LWBTN_FLAG_FIRST_INACTIVE_RCVD;
+        btn->flags = (btn->flags & LWBTN_FLAG_MANUAL_STATE) | LWBTN_FLAG_FIRST_INACTIVE_RCVD;
     }
 
     /* Button state has just changed */
@@ -212,10 +211,13 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
         } else {
             /*
              * Handle keep alive, but only if on-press event has been sent
+             * Keep alive is sent when valid press is being detected.
              *
-             * Keep alive is sent when valid press is being detected
+             * Period is checked to be greater than 0 as part of the loop condition itself,
+             * to prevent infinite loop situation when period is (dynamically, when enabled) set to 0
              */
-            while ((lwbtn_time_t)(mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
+            while (LWBTN_TIME_KEEPALIVE_PERIOD(btn) > 0
+                   && (lwbtn_time_t)(mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                 btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                 ++btn->keepalive.cnt;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
@@ -239,7 +241,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
              * - Config debounce time for release is more than `0`
              */
 #if LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_RELEASE > 0
-            if ((mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn))
+            if ((lwbtn_time_t)(mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn))
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_RELEASE > 0 */
             {
                 /* Handle on-release event */
@@ -487,7 +489,7 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
  * 
  * \note            If button is reset during active time, there will be no further events
  *                  for this button sent to the application, up until a new valid on-press is detected
- * 
+ *
  * \param           lwobj: Object to reset buttons. Set to non-NULL to reset
  *                      all buttons in an object
  * \param           btn: Button object to reset. Optional parameter.
@@ -753,7 +755,8 @@ lwbtn_keepalive_get_period(const lwbtn_btn_t* btn) {
  *                  \ref LWBTN_CFG_TIME_KEEPALIVE_PERIOD_DYNAMIC are both enabled
  *
  * \param[in]       btn: Button instance to set keep alive period for
- * \param[in]       period: New keep alive period in `ms`
+ * \param[in]       period: New keep alive period in `ms`.
+ *                      Set to `0` to disable the keep alive for specific button
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
