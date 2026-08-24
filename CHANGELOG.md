@@ -2,7 +2,10 @@
 
 ## Develop
 
+## v1.3.2
+
 - Guard all optional functions with the conditional compilation depending on the user configuration
+- Fix potential infinite while loop for keep alive
 
 ## v1.3.1
 
