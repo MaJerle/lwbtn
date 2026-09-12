@@ -50,11 +50,11 @@ extern "C" {
 
 /**
  * \brief           Custom user argument data structure
- * 
+ *
  * This is a simple pre-defined structure, that can be used by user
  * to define most commonly required feature in embedded systems, that being
  * GPIO port, GPIO pin and state when button is considered active.
- * 
+ *
  * User can later attach this structure as argument to button structure
  */
 typedef struct {
@@ -74,7 +74,7 @@ typedef LWBTN_CFG_TIME_VARTYPE lwbtn_time_t;
 
 /**
  * \brief           List of button events
- * 
+ *
  */
 typedef enum {
     LWBTN_EVT_ONPRESS = 0x00, /*!< On press event - sent when valid press is detected (after debounce if enabled) */
@@ -109,7 +109,7 @@ typedef uint8_t (*lwbtn_get_state_fn)(struct lwbtn* lwobj, struct lwbtn_btn* btn
 typedef struct lwbtn_btn {
     uint16_t flags; /*!< Private button flags management */
 #if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
-    uint8_t curr_state;             /*!< Current button state to be processed. It is used 
+    uint8_t curr_state;             /*!< Current button state to be processed. It is used
                                     to keep track when application manually sets the button state */
 #endif                              /* LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__ */
     uint8_t last_state;             /*!< Last button state - `1` means active, `0` means inactive */
@@ -222,7 +222,8 @@ uint8_t lwbtn_click_get_count(const lwbtn_btn_t* btn);
  * \param[in]       btns: Array of buttons to process
  * \param[in]       btns_cnt: Number of buttons to process
  * \param[in]       get_state_fn: Pointer to function providing button state on demand.
- *                      Can be set to `NULL` if \ref LWBTN_CFG_GET_STATE_MODE is NOT set to \ref LWBTN_GET_STATE_MODE_CALLBACK
+ *                      Can be set to `NULL` if \ref LWBTN_CFG_GET_STATE_MODE is NOT set to \ref
+ * LWBTN_GET_STATE_MODE_CALLBACK
  * \param[in]       evt_fn: Button event function callback
  * \sa              lwbtn_init_ex
  */
@@ -238,7 +239,7 @@ uint8_t lwbtn_click_get_count(const lwbtn_btn_t* btn);
 
 /**
  * \brief           Process specific button in a default LwBTN instance
- * 
+ *
  * \param[in]       btn: Button instance to process
  * \param[in]       mstime: Current system time in milliseconds
  */
