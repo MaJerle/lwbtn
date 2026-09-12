@@ -14,7 +14,7 @@ Welcome to the documentation for version |version|.
 Features
 ^^^^^^^^
 
-* Written in C (C11), compatible with `stdint.h` for size data types
+* Written in C (C11), compatible with ``stdint.h`` data types
 * Platform independent, requires user to provide millisecond timing source
 * No dynamic memory allocation
 * Callback driven event management
