@@ -1,5 +1,8 @@
 # Lightweight button manager
 
+LwBTN is a lightweight, platform independent library for button and input-pin management in embedded systems.
+It debounces raw pin state changes and turns them into click, multi-click and keep-alive (long-press) events, delivered through a single application callback.
+
 [Open documentation](https://docs.majerle.eu/projects/lwbtn/)
 
 ## Features

@@ -3,6 +3,9 @@ LwBTN |version| documentation
 
 Welcome to the documentation for version |version|.
 
+LwBTN is a lightweight, platform independent library for button and input-pin management in embedded systems.
+It debounces raw pin state changes and turns them into click, multi-click and keep-alive (long-press) events, delivered through a single application callback.
+
 .. image:: static/images/logo.svg
     :align: center
 
