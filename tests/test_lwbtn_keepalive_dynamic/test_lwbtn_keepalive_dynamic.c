@@ -16,14 +16,19 @@ static lwbtn_btn_t btn;
 /* Counters, updated by the event callback and checked by the test */
 static uint16_t press_cnt, release_cnt, keepalive_cnt;
 
+/* Keep-alive count as read by the application inside the on-release callback */
+static uint16_t keepalive_cnt_at_release;
+
 /* Event callback -> just counts events by type, no assertions here */
 static void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* b, lwbtn_evt_t evt) {
     (void)lw;
-    (void)b;
     switch (evt) {
         case LWBTN_EVT_ONPRESS: ++press_cnt; break;
-        case LWBTN_EVT_ONRELEASE: ++release_cnt; break;
+        case LWBTN_EVT_ONRELEASE:
+            ++release_cnt;
+            keepalive_cnt_at_release = lwbtn_keepalive_get_count(b);
+            break;
         case LWBTN_EVT_KEEPALIVE: ++keepalive_cnt; break;
         default: break;
     }
@@ -73,9 +78,22 @@ test_run(void) {
             printf("OK: got 5 keep-alive events as expected\r\n");
         }
 
-        /* Release the button to end this case cleanly */
+        /*
+         * Release the button:
+         * - count must still be available inside the on-release callback
+         * - count must be cleared once the release has been processed
+         */
+        keepalive_cnt_at_release = 0xFFFF;
         lwbtn_set_btn_state(&btn, 0);
         lwbtn_process(++mstime);
+        if (release_cnt != 1 || keepalive_cnt_at_release != 5 || lwbtn_keepalive_get_count(&btn) != 0) {
+            printf("FAIL: release_cnt=%u, count_in_release_cb=%u, count_after_release=%u (expected 1, 5, 0)\r\n",
+                   (unsigned)release_cnt, (unsigned)keepalive_cnt_at_release,
+                   (unsigned)lwbtn_keepalive_get_count(&btn));
+            all_ok = 0;
+        } else {
+            printf("OK: count readable in on-release callback and cleared afterwards\r\n");
+        }
     }
 
     /*

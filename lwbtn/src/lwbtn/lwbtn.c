@@ -260,6 +260,10 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
                 /* Handle on-release event */
                 btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
                 lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONRELEASE);
+#if LWBTN_CFG_USE_KEEPALIVE
+                /* Clear keep alive counter after release; still readable in on-release callback */
+                btn->keepalive.cnt = 0;
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
 
 #if LWBTN_CFG_USE_CLICK
                 /* Check time validity for click event */
