@@ -100,6 +100,24 @@ static lwbtn_t lwbtn_default;
 #define LWBTN_GET_LWOBJ(in_lwobj) ((in_lwobj) != NULL ? (in_lwobj) : (&lwbtn_default))
 
 /**
+ * \brief           Send event to the application and stop processing the button
+ *                  if application called \ref lwbtn_reset for it from within the callback.
+ *
+ * Reset clears \ref LWBTN_FLAG_FIRST_INACTIVE_RCVD, which is always set at this point of processing.
+ * Continuing would otherwise overwrite the freshly reset state (eg. set new click count),
+ * resulting in events being sent after the reset.
+ *
+ * \note            Macro returns from the calling function. Use only within \ref prv_process_btn
+ */
+#define LWBTN_SEND_EVT(lwobj, btn, evt)                                                                                \
+    do {                                                                                                               \
+        (lwobj)->evt_fn((lwobj), (btn), (evt));                                                                        \
+        if (!((btn)->flags & LWBTN_FLAG_FIRST_INACTIVE_RCVD)) {                                                        \
+            return;                                                                                                    \
+        }                                                                                                              \
+    } while (0)
+
+/**
  * \brief           Reset the active button states information
  *
  * \param           btn: Button object
@@ -110,6 +128,9 @@ prv_reset_btn(lwbtn_btn_t* btn) {
 #if LWBTN_CFG_USE_CLICK
     btn->click.cnt = 0;
 #endif /* LWBTN_CFG_USE_CLICK */
+#if LWBTN_CFG_USE_KEEPALIVE
+    btn->keepalive.cnt = 0;
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
 }
 
 /**
@@ -122,6 +143,9 @@ prv_reset_btn(lwbtn_btn_t* btn) {
 static void
 prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
     uint8_t new_state;
+
+    /* Store process time first, to have it valid also within the event callbacks */
+    btn->time_last_process = mstime;
 
     /* Get button state */
     new_state = LWBTN_BTN_GET_STATE(lwobj, btn);
@@ -146,6 +170,9 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
         /* Reset all states, but keep the manual-state selection (if any) intact */
         btn->last_state = 0;
         btn->flags = (btn->flags & LWBTN_FLAG_MANUAL_STATE) | LWBTN_FLAG_FIRST_INACTIVE_RCVD;
+#if LWBTN_CFG_USE_CLICK
+        btn->click.cnt = 0; /* Never continue a click sequence from before the reset */
+#endif                      /* LWBTN_CFG_USE_CLICK */
     }
 
     /* Button state has just changed */
@@ -204,21 +231,25 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
                  * if maximum number of consecutive clicks has been reached.
                  */
                 if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
-                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                    LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
 #endif /* !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
 
-                /* Start with new on-press */
+                /*
+                 * Start with new on-press.
+                 *
+                 * All press related states are set before the event is sent,
+                 * so that they are valid within the on-press callback
+                 */
                 btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
-                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONPRESS);
+                btn->time_change = mstime; /* Button state has now changed */
 #if LWBTN_CFG_USE_KEEPALIVE
                 /* Set keep alive time */
                 btn->keepalive.last_time = mstime;
                 btn->keepalive.cnt = 0;
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
-
-                btn->time_change = mstime; /* Button state has now changed */
+                LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONPRESS);
             }
 #if LWBTN_CFG_USE_KEEPALIVE
         } else {
@@ -228,12 +259,15 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
              *
              * Period is checked to be greater than 0 as part of the loop condition itself,
              * to prevent infinite loop situation when period is (dynamically, when enabled) set to 0
+             *
+             * If application calls \ref lwbtn_reset from within the keep-alive callback,
+             * event sending macro stops the loop and no further events are sent.
              */
             while (LWBTN_TIME_KEEPALIVE_PERIOD(btn) > 0
                    && (lwbtn_time_t)(mstime - btn->keepalive.last_time) >= LWBTN_TIME_KEEPALIVE_PERIOD(btn)) {
                 btn->keepalive.last_time += LWBTN_TIME_KEEPALIVE_PERIOD(btn);
                 ++btn->keepalive.cnt;
-                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_KEEPALIVE);
+                LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_KEEPALIVE);
             }
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
         }
@@ -259,7 +293,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
             {
                 /* Handle on-release event */
                 btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
-                lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONRELEASE);
+                LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONRELEASE);
 #if LWBTN_CFG_USE_KEEPALIVE
                 /* Clear keep alive counter after release; still readable in on-release callback */
                 btn->keepalive.cnt = 0;
@@ -289,7 +323,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
                          * In this case simply report previous state before setting new click.
                          */
                         if (btn->click.cnt > 0) {
-                            lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                            LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONCLICK);
                         }
                         btn->click.cnt = 1;
                     }
@@ -299,7 +333,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
                     /* If last press was too short, and previous sequence of clicks was positive, send event to user */
                     if (btn->click.cnt > 0
                         && (lwbtn_time_t)(mstime - btn->time_change) < LWBTN_TIME_CLICK_GET_PRESSED_MIN(btn)) {
-                        lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                        LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONCLICK);
                     }
 #endif /* LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS */
                     /*
@@ -318,7 +352,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
                  * if maximum number of consecutive clicks has been reached.
                  */
                 if (btn->click.cnt > 0 && btn->click.cnt == LWBTN_CLICK_MAX_CONSECUTIVE(btn)) {
-                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                    LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
 #endif /* LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
@@ -338,7 +372,7 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
              */
             if (btn->click.cnt > 0) {
                 if ((lwbtn_time_t)(mstime - btn->click.last_time) >= LWBTN_TIME_CLICK_MAX_MULTI(btn)) {
-                    lwobj->evt_fn(lwobj, btn, LWBTN_EVT_ONCLICK);
+                    LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONCLICK);
                     btn->click.cnt = 0;
                 }
             }
@@ -493,6 +527,24 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
 }
 
 /**
+ * \brief           Check if button has been continuously pressed for at least `time` milliseconds.
+ *
+ *                  Pressed time is measured from the on-press event (after the press debounce)
+ *                  until the last process call for this button.
+ *                  Within the event callback, this is the time of the current process call.
+ *
+ * \note            Function returns `0` if button is not active (between on-press and on-release events)
+ *
+ * \param[in]       btn: Button handle to check
+ * \param[in]       time: Minimum pressed time in milliseconds
+ * \return          `1` if button is active and pressed for at least `time` milliseconds, `0` otherwise
+ */
+uint8_t
+lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t time) {
+    return lwbtn_is_btn_active(btn) && (lwbtn_time_t)(btn->time_last_process - btn->time_change) >= time;
+}
+
+/**
  * \brief           Reset button[s] state to default
  *
  *                  When reset is called, and if button is pressed (active),
@@ -510,22 +562,29 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
  *                  and forces the user to release the button and press it again.
  *
  * \note            If button is reset during active time, there will be no further events
- *                  for this button sent to the application, up until a new valid on-press is detected
+ *                  for this button sent to the application, up until a new valid on-press is detected.
+ *                  It is safe to call this function from within the event callback (eg. keep-alive event).
  *
- * \param           lwobj: Object to reset buttons. Set to non-NULL to reset
- *                      all buttons in an object, or set to `NULL` if you want to reset only
- *                      a specific button object
- * \param           btn: Button object to reset. Optional parameter.
- *                      When non-NULL, button is reset
+ * Reset scope depends on the parameters:
+ *
+ *  - `btn` is non-NULL: only that button is reset, regardless of the `lwobj` value
+ *  - `btn` is `NULL`, `lwobj` is non-NULL: all buttons of the `lwobj` instance are reset
+ *  - `btn` is `NULL`, `lwobj` is `NULL`: all buttons of the default instance are reset
+ *
+ * \param[in]       lwobj: LwBTN instance whose buttons to reset. Set to `NULL` to use default one.
+ *                      Ignored when `btn` is non-NULL
+ * \param[in]       btn: Button object to reset. Set to `NULL` to reset all buttons of the `lwobj` instance
  * \return          `1` on success, `0` otherwise
  */
 uint8_t
 lwbtn_reset(lwbtn_t* lwobj, lwbtn_btn_t* btn) {
-    for (size_t idx = 0; idx < (lwobj != NULL ? lwobj->btns_cnt : 0); ++idx) {
-        prv_reset_btn(&lwobj->btns[idx]);
-    }
     if (btn != NULL) {
         prv_reset_btn(btn);
+    } else {
+        lwobj = LWBTN_GET_LWOBJ(lwobj);
+        for (size_t idx = 0; idx < lwobj->btns_cnt; ++idx) {
+            prv_reset_btn(&lwobj->btns[idx]);
+        }
     }
     return 1;
 }
