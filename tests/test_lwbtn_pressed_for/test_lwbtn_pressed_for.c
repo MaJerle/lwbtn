@@ -118,6 +118,19 @@ test_run(void) {
         TEST_ASSERT(lwbtn_is_btn_pressed_for(&context.btn, 300));
         TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 301));
 
+        /* Range check, pressed time is 300 ms - both bounds are inclusive */
+        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 300, 300));
+        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 0, 300));
+        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 300, 1000));
+        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 200, 400));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(&context.btn, 301, 1000)); /* Below min */
+        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(&context.btn, 0, 299));    /* Above max */
+        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(&context.btn, 400, 200));  /* min > max */
+        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(NULL, 0, (lwbtn_time_t)-1));
+        printf("Range [200, 400] at 300 ms: %u (expected 1), range [0, 299]: %u (expected 0)\r\n",
+               (unsigned)lwbtn_is_btn_pressed_for_range(&context.btn, 200, 400),
+               (unsigned)lwbtn_is_btn_pressed_for_range(&context.btn, 0, 299));
+
         /* Reset while held -> no longer pressed, even after further processing */
         lwbtn_reset(NULL, &context.btn);
         TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));

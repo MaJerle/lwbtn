@@ -527,7 +527,7 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
 }
 
 /**
- * \brief           Check if button has been continuously pressed for at least `time` milliseconds.
+ * \brief           Check if button has been continuously pressed for at least `min_time` milliseconds.
  *
  *                  Pressed time is measured from the on-press event (after the press debounce)
  *                  until the last process call for this button.
@@ -536,12 +536,38 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
  * \note            Function returns `0` if button is not active (between on-press and on-release events)
  *
  * \param[in]       btn: Button handle to check
- * \param[in]       time: Minimum pressed time in milliseconds
- * \return          `1` if button is active and pressed for at least `time` milliseconds, `0` otherwise
+ * \param[in]       min_time: Minimum pressed time in milliseconds (inclusive)
+ * \return          `1` if button is active and pressed for at least `min_time` milliseconds, `0` otherwise
+ * \sa              lwbtn_is_btn_pressed_for_range
  */
 uint8_t
-lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t time) {
-    return lwbtn_is_btn_active(btn) && (lwbtn_time_t)(btn->time_last_process - btn->time_change) >= time;
+lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t min_time) {
+    return lwbtn_is_btn_pressed_for_range(btn, min_time, (lwbtn_time_t)-1);
+}
+
+/**
+ * \brief           Check if button has been continuously pressed for a time within the `[min_time, max_time]` range.
+ *
+ *                  Pressed time is measured from the on-press event (after the press debounce)
+ *                  until the last process call for this button.
+ *                  Within the event callback, this is the time of the current process call.
+ *
+ * \note            Function returns `0` if button is not active (between on-press and on-release events),
+ *                  or if `min_time` is greater than `max_time`
+ *
+ * \param[in]       btn: Button handle to check
+ * \param[in]       min_time: Minimum pressed time in milliseconds (inclusive)
+ * \param[in]       max_time: Maximum pressed time in milliseconds (inclusive)
+ * \return          `1` if button is active and pressed time is `>= min_time` and `<= max_time`, `0` otherwise
+ * \sa              lwbtn_is_btn_pressed_for
+ */
+uint8_t
+lwbtn_is_btn_pressed_for_range(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lwbtn_time_t max_time) {
+    if (lwbtn_is_btn_active(btn)) {
+        lwbtn_time_t pressed_time = (lwbtn_time_t)(btn->time_last_process - btn->time_change);
+        return pressed_time >= min_time && pressed_time <= max_time;
+    }
+    return 0;
 }
 
 /**
