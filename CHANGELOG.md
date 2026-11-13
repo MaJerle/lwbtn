@@ -2,6 +2,10 @@
 
 ## Develop
 
+- `lwbtn_reset`: when `btn` is non-NULL, reset only that button; otherwise reset all buttons of `lwobj` (default instance when `NULL`)
+- Stop processing the button when `lwbtn_reset` is called from within any event callback. No further events (keep-alive, on-press, delayed on-click) are sent for that button until a new valid press
+- `lwbtn_reset` also clears the keep-alive counter
+
 ## v1.3.2
 
 - Guard all optional functions with the conditional compilation depending on the user configuration
