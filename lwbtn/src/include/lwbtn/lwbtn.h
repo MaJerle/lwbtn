@@ -179,7 +179,8 @@ uint8_t lwbtn_process_ex(lwbtn_t* lwobj, lwbtn_time_t mstime);
 uint8_t lwbtn_process_btn_ex(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime);
 uint8_t lwbtn_reset(lwbtn_t* lwobj, lwbtn_btn_t* btn);
 uint8_t lwbtn_is_btn_active(const lwbtn_btn_t* btn);
-uint8_t lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t time);
+uint8_t lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t min_time);
+uint8_t lwbtn_is_btn_pressed_for_range(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lwbtn_time_t max_time);
 
 /* State function */
 #if LWBTN_CFG_GET_STATE_MODE != LWBTN_GET_STATE_MODE_CALLBACK || __DOXYGEN__
