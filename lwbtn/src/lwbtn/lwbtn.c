@@ -144,6 +144,9 @@ static void
 prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
     uint8_t new_state;
 
+    /* Store process time first, to have it valid also within the event callbacks */
+    btn->time_last_process = mstime;
+
     /* Get button state */
     new_state = LWBTN_BTN_GET_STATE(lwobj, btn);
 
@@ -233,16 +236,20 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
                 }
 #endif /* !LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY */
 
-                /* Start with new on-press */
+                /*
+                 * Start with new on-press.
+                 *
+                 * All press related states are set before the event is sent,
+                 * so that they are valid within the on-press callback
+                 */
                 btn->flags |= LWBTN_FLAG_ONPRESS_SENT;
-                LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONPRESS);
+                btn->time_change = mstime; /* Button state has now changed */
 #if LWBTN_CFG_USE_KEEPALIVE
                 /* Set keep alive time */
                 btn->keepalive.last_time = mstime;
                 btn->keepalive.cnt = 0;
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
-
-                btn->time_change = mstime; /* Button state has now changed */
+                LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONPRESS);
             }
 #if LWBTN_CFG_USE_KEEPALIVE
         } else {
@@ -517,6 +524,24 @@ lwbtn_set_btn_state(lwbtn_btn_t* btn, uint8_t state) {
 uint8_t
 lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
     return btn != NULL && (btn->flags & LWBTN_FLAG_ONPRESS_SENT);
+}
+
+/**
+ * \brief           Check if button has been continuously pressed for at least `time` milliseconds.
+ *
+ *                  Pressed time is measured from the on-press event (after the press debounce)
+ *                  until the last process call for this button.
+ *                  Within the event callback, this is the time of the current process call.
+ *
+ * \note            Function returns `0` if button is not active (between on-press and on-release events)
+ *
+ * \param[in]       btn: Button handle to check
+ * \param[in]       time: Minimum pressed time in milliseconds
+ * \return          `1` if button is active and pressed for at least `time` milliseconds, `0` otherwise
+ */
+uint8_t
+lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t time) {
+    return lwbtn_is_btn_active(btn) && (lwbtn_time_t)(btn->time_last_process - btn->time_change) >= time;
 }
 
 /**
