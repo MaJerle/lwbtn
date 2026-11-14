@@ -247,6 +247,170 @@ Feature can be used to make a trigger at specific time if button is in active st
 
     Keep alive events when button is kept pressed
 
+Keep-alive events are never skipped. If processing is delayed (for example, :c:func:`lwbtn_process` is called later than one keep-alive period),
+all missed keep-alive events are sent in the same process call, one by one, and the counter returned by :c:func:`lwbtn_keepalive_get_count`
+increases by exactly ``1`` for each event.
+
+This makes keep-alive the right tool to **execute an action exactly once** after the button is held for a specific time.
+Compare the keep-alive counter with ``==`` to the number of keep-alive periods for the required time:
+
+.. code-block:: c
+    :caption: Execute an action exactly once, after button is held for 2 seconds
+
+    /* Must be a multiple of the keep-alive period */
+    #define LONG_PRESS_TIME 2000
+
+    static void
+    prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
+        if (evt == LWBTN_EVT_KEEPALIVE
+            && lwbtn_keepalive_get_count(btn) == lwbtn_keepalive_get_count_for_time(btn, LONG_PRESS_TIME)) {
+            /* Executed exactly once per press, even if processing was delayed */
+            long_press_action();
+        }
+    }
+
+Several stages are handled the same way, with one ``==`` check for each stage:
+
+.. code-block:: c
+    :caption: Multiple stages during a single hold
+
+    if (evt == LWBTN_EVT_KEEPALIVE) {
+        uint16_t cnt = lwbtn_keepalive_get_count(btn);
+
+        if (cnt == lwbtn_keepalive_get_count_for_time(btn, 1000)) {
+            led_blink_slow();   /* User feedback: keep holding */
+        } else if (cnt == lwbtn_keepalive_get_count_for_time(btn, 5000)) {
+            factory_reset();    /* Executed once, after 5 seconds */
+        }
+    }
+
+.. note::
+    :c:macro:`lwbtn_keepalive_get_count_for_time` divides the time by the keep-alive period and rounds the result down.
+    Use times that are multiples of the keep-alive period, otherwise the action is executed up to one period earlier.
+
+.. warning::
+    Do not use the pressed time functions (see :ref:`um_pressed_time`) to execute an action exactly once.
+    Pressed time grows in steps of the processing period and is checked with ``>=``,
+    so :c:func:`lwbtn_is_btn_pressed_for` returns ``1`` for every keep-alive event after the time has passed.
+    Comparing a pressed time with ``==`` may never be true, as a specific millisecond value can be skipped.
+
+.. _um_pressed_time:
+
+Pressed time
+^^^^^^^^^^^^
+
+Library tracks how long each button has been continuously pressed. ``2`` functions are available:
+
+* :c:func:`lwbtn_is_btn_pressed_for` returns ``1`` if button has been pressed for at least ``min_time`` milliseconds
+* :c:func:`lwbtn_is_btn_pressed_for_range` returns ``1`` if button has been pressed for a time between ``min_time`` and ``max_time`` milliseconds.
+  Both bounds are inclusive, and function returns ``0`` if ``min_time`` is greater than ``max_time``
+
+Pressed time is measured from the **onpress** event (after the press debounce) until the last process call for this button.
+
+* Within any event callback, last process call is the current one, so pressed time is exact
+* Outside the callbacks, pressed time is as old as the last process call
+* Both functions return ``0`` when button is not pressed, or after :c:func:`lwbtn_reset` has been called
+* Within the **onrelease** event callback, both functions check how long the button was pressed before it was released (see below)
+
+.. tip::
+    Pressed time functions answer *"has the button been pressed for this time"* and stay true while the button is held.
+    To execute an action *exactly once*, use the keep-alive counter instead, as described in the keep-alive section above.
+
+Pressed for minimum time
+************************
+
+:c:func:`lwbtn_is_btn_pressed_for` can be used anywhere in the application, not only within the event callbacks.
+It is a state check, that stays true as long as the button is held:
+
+.. code-block:: c
+    :caption: Turn on the warning LED while the button is held for at least 3 seconds
+
+    while (1) {
+        lwbtn_process(get_tick());
+        led_set(LED_WARNING, lwbtn_is_btn_pressed_for(&btns[0], 3000));
+    }
+
+Pressed time on release
+***********************
+
+Within the **onrelease** event callback, button is no longer active (:c:func:`lwbtn_is_btn_active` returns ``0``),
+but pressed time functions and :c:func:`lwbtn_keepalive_get_count` still report the state just before the release.
+This allows the application to take different actions, depending on how long the button was pressed:
+
+.. code-block:: c
+    :caption: Different actions on release, depending on the pressed time
+
+    if (evt == LWBTN_EVT_ONRELEASE) {
+        if (lwbtn_is_btn_pressed_for(btn, 5000)) {
+            very_long_press_action();       /* Pressed for 5 seconds or more */
+        } else if (lwbtn_is_btn_pressed_for_range(btn, 2000, 4999)) {
+            long_press_action();            /* Pressed for 2 to 5 seconds */
+        }
+    }
+
+.. note::
+    Pressed time on release is the time between the **onpress** and the **onrelease** events.
+    When release debounce is enabled (see :c:macro:`LWBTN_CFG_TIME_DEBOUNCE_RELEASE`), it includes the release debounce time.
+
+After the **onrelease** callback returns, both functions return ``0``.
+
+Buttons pressed together
+************************
+
+:c:func:`lwbtn_is_btn_pressed_for_range` can be used to detect ``2`` buttons pressed together (a button combination).
+If both buttons have been pressed for a time between ``COMBO_HOLD_TIME`` and ``COMBO_HOLD_TIME + COMBO_TOLERANCE``,
+they are both held long enough, and they were pressed at most ``COMBO_TOLERANCE`` milliseconds apart, in any order:
+
+.. code-block:: c
+    :caption: Detect 2 buttons pressed together and held for 1 second
+
+    /* Minimum time both buttons must be held */
+    #define COMBO_HOLD_TIME     1000
+    /* Max time between both presses, in any order. Must be larger than keep-alive period */
+    #define COMBO_TOLERANCE     200
+
+    static void
+    prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
+        if (evt == LWBTN_EVT_KEEPALIVE
+            && lwbtn_is_btn_pressed_for_range(&btns[0], COMBO_HOLD_TIME, COMBO_HOLD_TIME + COMBO_TOLERANCE)
+            && lwbtn_is_btn_pressed_for_range(&btns[1], COMBO_HOLD_TIME, COMBO_HOLD_TIME + COMBO_TOLERANCE)) {
+            combo_action();
+
+            /* Reset both buttons -> combination is executed once, no further events until buttons are pressed again */
+            lwbtn_reset(lw, &btns[0]);
+            lwbtn_reset(lw, &btns[1]);
+            return;
+        }
+        /* Handle other events... */
+    }
+
+How it works:
+
+* Both range checks are true only when both buttons are held for at least ``COMBO_HOLD_TIME``, and their presses are at most ``COMBO_TOLERANCE`` milliseconds apart
+* Check is symmetric and can be done in the keep-alive event of any button
+* Resetting both buttons executes the combination only once, and prevents their own **onrelease**, **onclick** and further keep-alive events,
+  so the application does not execute single-button actions after the combination
+
+To only check that both buttons are held, regardless of when each one was pressed, use :c:func:`lwbtn_is_btn_pressed_for` instead of the range checks.
+
+.. note::
+    Combination is detected only if the check runs while both pressed times are within the range.
+    That time window is ``COMBO_TOLERANCE`` minus the time between both presses.
+    With the check in keep-alive events, presses that are at most ``COMBO_TOLERANCE`` minus keep-alive period apart are always detected.
+    The check can also be done in the main loop, after every :c:func:`lwbtn_process` call, for a finer resolution.
+
+.. note::
+    :c:func:`lwbtn_process` processes buttons in the array order.
+    Within a button's callback, buttons with higher array index have not been processed yet in this call,
+    so their pressed time is from the previous process call.
+    Set ``COMBO_TOLERANCE`` larger than the processing period.
+
+.. tip::
+    Each button is also processed on its own and sends its own events, before the combination is detected.
+    Execute single-button actions on **onrelease** or **onclick** events,
+    or with a hold time longer than ``COMBO_HOLD_TIME + COMBO_TOLERANCE``,
+    so that the reset cancels them when the combination is detected.
+
 Debounce
 ^^^^^^^^
 
