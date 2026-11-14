@@ -12,6 +12,7 @@ It debounces raw pin state changes and turns them into click, multi-click and ke
 * No dynamic memory allocation
 * Callback-driven event management
 * Support for click, multi-click and keep-alive (long press) events
+* Pressed-time checks (minimum time or time range), also on release, and multi-button combinations
 * Support for software debounce for press and release events
 * Runtime configurable debounce, click and keep-alive timing, per button
 * Selectable button state acquisition: callback, manual or hybrid mode
