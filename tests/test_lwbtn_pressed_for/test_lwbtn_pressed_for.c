@@ -21,14 +21,38 @@ static struct {
     /* Results captured from within the on-press callback */
     uint8_t onpress_pressed_for_0;
     uint8_t onpress_pressed_for_1;
+
+    /* Results captured from within the on-release callback */
+    uint8_t onrelease_cnt;
+    uint8_t onrelease_active;
+    uint8_t onrelease_pressed_for_2001;
+    uint8_t onrelease_pressed_for_2002;
+    uint8_t onrelease_range_2000_2001;
+    uint8_t onrelease_range_0_2000;
+    uint16_t onrelease_keepalive_cnt;
+    uint8_t reset_in_onrelease; /* One-shot: call reset from within on-release callback */
 } context;
 
 static void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* b, lwbtn_evt_t evt) {
-    (void)lw;
     if (evt == LWBTN_EVT_ONPRESS) {
         context.onpress_pressed_for_0 = lwbtn_is_btn_pressed_for(b, 0);
         context.onpress_pressed_for_1 = lwbtn_is_btn_pressed_for(b, 1);
+    }
+    if (evt == LWBTN_EVT_ONRELEASE) {
+        ++context.onrelease_cnt;
+        context.onrelease_active = lwbtn_is_btn_active(b);
+        context.onrelease_pressed_for_2001 = lwbtn_is_btn_pressed_for(b, 2001);
+        context.onrelease_pressed_for_2002 = lwbtn_is_btn_pressed_for(b, 2002);
+        context.onrelease_range_2000_2001 = lwbtn_is_btn_pressed_for_range(b, 2000, 2001);
+        context.onrelease_range_0_2000 = lwbtn_is_btn_pressed_for_range(b, 0, 2000);
+#if LWBTN_CFG_USE_KEEPALIVE
+        context.onrelease_keepalive_cnt = lwbtn_keepalive_get_count(b);
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+        if (context.reset_in_onrelease) {
+            context.reset_in_onrelease = 0;
+            lwbtn_reset(lw, b);
+        }
     }
 #if LWBTN_CFG_USE_KEEPALIVE
     if (evt == LWBTN_EVT_KEEPALIVE) {
@@ -49,6 +73,8 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* b, lwbtn_evt_t evt) {
  * - Returns `0` for NULL button and when button is not active
  * - Pressed time is measured from on-press until the last process call
  * - Valid within event callbacks (time of the current process call)
+ * - Within on-release callback: button is not active, but pressed time before release
+ *   and keep-alive counter are still available
  * - Returns `0` after release and after reset, even if button is still physically held
  */
 int
@@ -99,9 +125,24 @@ test_run(void) {
         TEST_ASSERT(context.keepalive_cnt > 0 && context.keepalive_cnt == context.keepalive_pressed_for_ok);
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
 
-        /* Release -> no longer pressed */
+        /* Release after 2001 ms of pressing -> pressed time is still available in on-release callback */
         lwbtn_set_btn_state(&context.btn, 0);
         lwbtn_process(mstime++);
+        printf("In on-release: active: %u (expected 0), pressed for 2001: %u (expected 1), 2002: %u (expected 0)\r\n",
+               (unsigned)context.onrelease_active, (unsigned)context.onrelease_pressed_for_2001,
+               (unsigned)context.onrelease_pressed_for_2002);
+        TEST_ASSERT(context.onrelease_cnt == 1);
+        TEST_ASSERT(!context.onrelease_active);
+        TEST_ASSERT(context.onrelease_pressed_for_2001 && !context.onrelease_pressed_for_2002);
+        TEST_ASSERT(context.onrelease_range_2000_2001 && !context.onrelease_range_0_2000);
+#if LWBTN_CFG_USE_KEEPALIVE
+        printf("In on-release: keep-alive count: %u (expected %u)\r\n", (unsigned)context.onrelease_keepalive_cnt,
+               (unsigned)context.keepalive_cnt);
+        TEST_ASSERT(context.onrelease_keepalive_cnt == context.keepalive_cnt);
+        TEST_ASSERT(lwbtn_keepalive_get_count(&context.btn) == 0);
+#endif /* LWBTN_CFG_USE_KEEPALIVE */
+
+        /* After on-release callback -> no longer pressed */
         printf("After release, pressed for 0: %u (expected 0)\r\n",
                (unsigned)lwbtn_is_btn_pressed_for(&context.btn, 0));
         TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
@@ -137,6 +178,25 @@ test_run(void) {
         mstime += 1000;
         lwbtn_process(mstime);
         printf("After reset while held, pressed for 0: %u (expected 0)\r\n",
+               (unsigned)lwbtn_is_btn_pressed_for(&context.btn, 0));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
+    }
+
+    {
+        /* Reset from within on-release callback -> pressed time is not available after the callback */
+        lwbtn_set_btn_state(&context.btn, 0); /* After previous reset, library first requires inactive state */
+        lwbtn_process(mstime);
+        mstime += 500;
+        lwbtn_set_btn_state(&context.btn, 1);
+        lwbtn_process(mstime);
+        mstime += 2001;
+        lwbtn_process(mstime);
+        context.onrelease_cnt = 0;
+        context.reset_in_onrelease = 1;
+        lwbtn_set_btn_state(&context.btn, 0);
+        lwbtn_process(mstime);
+        TEST_ASSERT(context.onrelease_cnt == 1 && context.onrelease_pressed_for_2001);
+        printf("After reset in on-release, pressed for 0: %u (expected 0)\r\n",
                (unsigned)lwbtn_is_btn_pressed_for(&context.btn, 0));
         TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
     }
