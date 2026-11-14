@@ -7,6 +7,7 @@
 - `lwbtn_reset` also clears the keep-alive counter
 - Add `lwbtn_is_btn_pressed_for` to check if button has been continuously pressed for at least the given time
 - Add `lwbtn_is_btn_pressed_for_range` to check if button has been continuously pressed for a time within the `[min, max]` range
+- Pressed time functions remain valid within the on-release callback, to check how long the button was pressed before release
 - Set on-press time and keep-alive state before the on-press event is sent, so they are valid within the on-press callback
 
 ## v1.3.2

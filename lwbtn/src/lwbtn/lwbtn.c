@@ -41,9 +41,11 @@
 #define LWBTN_FLAG_MANUAL_STATE        ((uint16_t)0x0001) /*!< Manually set the state of the button */
 #define LWBTN_FLAG_ONPRESS_SENT        ((uint16_t)0x0002) /*!< Flag indicates that on-press event has been sent */
 #define LWBTN_FLAG_FIRST_INACTIVE_RCVD ((uint16_t)0x0004) /*!< First inactive received flag */
+#define LWBTN_FLAG_IN_ONRELEASE        ((uint16_t)0x0008) /*!< Flag indicates on-release event is being sent */
 
 /* Flags to clear on reset event */
-#define LWBTN_FLAGS_CLEAR_ON_RESET     ((uint16_t)(LWBTN_FLAG_FIRST_INACTIVE_RCVD | LWBTN_FLAG_ONPRESS_SENT))
+#define LWBTN_FLAGS_CLEAR_ON_RESET                                                                                     \
+    ((uint16_t)(LWBTN_FLAG_FIRST_INACTIVE_RCVD | LWBTN_FLAG_ONPRESS_SENT | LWBTN_FLAG_IN_ONRELEASE))
 
 #if LWBTN_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC
 #define LWBTN_TIME_DEBOUNCE_PRESS_GET_MIN(btn) ((lwbtn_time_t)((btn)->time_debounce))
@@ -291,9 +293,16 @@ prv_process_btn(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_time_t mstime) {
             if ((lwbtn_time_t)(mstime - btn->time_state_change) >= LWBTN_TIME_DEBOUNCE_RELEASE_GET_MIN(btn))
 #endif /* LWBTN_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC || LWBTN_CFG_TIME_DEBOUNCE_RELEASE > 0 */
             {
-                /* Handle on-release event */
-                btn->flags &= ~LWBTN_FLAG_ONPRESS_SENT;
+                /*
+                 * Handle on-release event.
+                 *
+                 * Button is not active anymore, but pressed time (and keep-alive counter)
+                 * remain available within the on-release callback,
+                 * so that application can check how long the button was pressed before release.
+                 */
+                btn->flags = (btn->flags & ~LWBTN_FLAG_ONPRESS_SENT) | LWBTN_FLAG_IN_ONRELEASE;
                 LWBTN_SEND_EVT(lwobj, btn, LWBTN_EVT_ONRELEASE);
+                btn->flags &= ~LWBTN_FLAG_IN_ONRELEASE;
 #if LWBTN_CFG_USE_KEEPALIVE
                 /* Clear keep alive counter after release; still readable in on-release callback */
                 btn->keepalive.cnt = 0;
@@ -533,7 +542,9 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
  *                  until the last process call for this button.
  *                  Within the event callback, this is the time of the current process call.
  *
- * \note            Function returns `0` if button is not active (between on-press and on-release events)
+ * \note            Function returns `0` if button is not active (between on-press and on-release events),
+ *                  except within the on-release event callback, where it returns pressed time state
+ *                  just before the release (how long the button was pressed before it got released)
  *
  * \param[in]       btn: Button handle to check
  * \param[in]       min_time: Minimum pressed time in milliseconds (inclusive)
@@ -553,7 +564,8 @@ lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t min_time) {
  *                  Within the event callback, this is the time of the current process call.
  *
  * \note            Function returns `0` if button is not active (between on-press and on-release events),
- *                  or if `min_time` is greater than `max_time`
+ *                  or if `min_time` is greater than `max_time`.
+ *                  Within the on-release event callback, it checks how long the button was pressed before release
  *
  * \param[in]       btn: Button handle to check
  * \param[in]       min_time: Minimum pressed time in milliseconds (inclusive)
@@ -563,7 +575,7 @@ lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t min_time) {
  */
 uint8_t
 lwbtn_is_btn_pressed_for_range(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lwbtn_time_t max_time) {
-    if (lwbtn_is_btn_active(btn)) {
+    if (btn != NULL && (btn->flags & (LWBTN_FLAG_ONPRESS_SENT | LWBTN_FLAG_IN_ONRELEASE))) {
         lwbtn_time_t pressed_time = (lwbtn_time_t)(btn->time_last_process - btn->time_change);
         return pressed_time >= min_time && pressed_time <= max_time;
     }
