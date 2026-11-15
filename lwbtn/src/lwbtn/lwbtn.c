@@ -549,11 +549,11 @@ lwbtn_is_btn_active(const lwbtn_btn_t* btn) {
  * \param[in]       btn: Button handle to check
  * \param[in]       min_time: Minimum pressed time in milliseconds (inclusive)
  * \return          `1` if button is active and pressed for at least `min_time` milliseconds, `0` otherwise
- * \sa              lwbtn_is_btn_pressed_for_range
+ * \sa              lwbtn_is_btn_pressed_between
  */
 uint8_t
-lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t min_time) {
-    return lwbtn_is_btn_pressed_for_range(btn, min_time, (lwbtn_time_t)-1);
+lwbtn_is_btn_pressed_at_least(const lwbtn_btn_t* btn, lwbtn_time_t min_time) {
+    return lwbtn_is_btn_pressed_between(btn, min_time, (lwbtn_time_t)-1);
 }
 
 /**
@@ -571,10 +571,10 @@ lwbtn_is_btn_pressed_for(const lwbtn_btn_t* btn, lwbtn_time_t min_time) {
  * \param[in]       min_time: Minimum pressed time in milliseconds (inclusive)
  * \param[in]       max_time: Maximum pressed time in milliseconds (inclusive)
  * \return          `1` if button is active and pressed time is `>= min_time` and `<= max_time`, `0` otherwise
- * \sa              lwbtn_is_btn_pressed_for
+ * \sa              lwbtn_is_btn_pressed_at_least
  */
 uint8_t
-lwbtn_is_btn_pressed_for_range(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lwbtn_time_t max_time) {
+lwbtn_is_btn_pressed_between(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lwbtn_time_t max_time) {
     if (btn != NULL && (btn->flags & (LWBTN_FLAG_ONPRESS_SENT | LWBTN_FLAG_IN_ONRELEASE))) {
         lwbtn_time_t pressed_time = (lwbtn_time_t)(btn->time_last_process - btn->time_change);
         return pressed_time >= min_time && pressed_time <= max_time;
@@ -583,7 +583,7 @@ lwbtn_is_btn_pressed_for_range(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lw
 }
 
 /**
- * \brief           Reset button[s] state to default
+ * \brief           Reset button or buttons state to default
  *
  *                  When reset is called, and if button is pressed (active),
  *                  no further events will be called up until we receive
@@ -594,7 +594,7 @@ lwbtn_is_btn_pressed_for_range(const lwbtn_btn_t* btn, lwbtn_time_t min_time, lw
  *
  *                  Consider the use case where user runs the GUI and long press changes the screen.
  *                  The new screen has its own button handling method, which performs some other action (eg. "go home"
- * action).
+ *                  action).
  *
  *                  Calling the reset function will prevent new screen to continue receiving the events
  *                  and forces the user to release the button and press it again.

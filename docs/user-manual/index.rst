@@ -291,7 +291,7 @@ Several stages are handled the same way, with one ``==`` check for each stage:
 .. warning::
     Do not use the pressed time functions (see :ref:`um_pressed_time`) to execute an action exactly once.
     Pressed time grows in steps of the processing period and is checked with ``>=``,
-    so :c:func:`lwbtn_is_btn_pressed_for` returns ``1`` for every keep-alive event after the time has passed.
+    so :c:func:`lwbtn_is_btn_pressed_at_least` returns ``1`` for every keep-alive event after the time has passed.
     Comparing a pressed time with ``==`` may never be true, as a specific millisecond value can be skipped.
 
 .. _um_pressed_time:
@@ -301,8 +301,8 @@ Pressed time
 
 Library tracks how long each button has been continuously pressed. ``2`` functions are available:
 
-* :c:func:`lwbtn_is_btn_pressed_for` returns ``1`` if button has been pressed for at least ``min_time`` milliseconds
-* :c:func:`lwbtn_is_btn_pressed_for_range` returns ``1`` if button has been pressed for a time between ``min_time`` and ``max_time`` milliseconds.
+* :c:func:`lwbtn_is_btn_pressed_at_least` returns ``1`` if button has been pressed for at least ``min_time`` milliseconds
+* :c:func:`lwbtn_is_btn_pressed_between` returns ``1`` if button has been pressed for a time between ``min_time`` and ``max_time`` milliseconds.
   Both bounds are inclusive, and function returns ``0`` if ``min_time`` is greater than ``max_time``
 
 Pressed time is measured from the **onpress** event (after the press debounce) until the last process call for this button.
@@ -319,7 +319,7 @@ Pressed time is measured from the **onpress** event (after the press debounce) u
 Pressed for minimum time
 ************************
 
-:c:func:`lwbtn_is_btn_pressed_for` can be used anywhere in the application, not only within the event callbacks.
+:c:func:`lwbtn_is_btn_pressed_at_least` can be used anywhere in the application, not only within the event callbacks.
 It is a state check, that stays true as long as the button is held:
 
 .. code-block:: c
@@ -327,7 +327,7 @@ It is a state check, that stays true as long as the button is held:
 
     while (1) {
         lwbtn_process(get_tick());
-        led_set(LED_WARNING, lwbtn_is_btn_pressed_for(&btns[0], 3000));
+        led_set(LED_WARNING, lwbtn_is_btn_pressed_at_least(&btns[0], 3000));
     }
 
 Pressed time on release
@@ -341,9 +341,9 @@ This allows the application to take different actions, depending on how long the
     :caption: Different actions on release, depending on the pressed time
 
     if (evt == LWBTN_EVT_ONRELEASE) {
-        if (lwbtn_is_btn_pressed_for(btn, 5000)) {
+        if (lwbtn_is_btn_pressed_at_least(btn, 5000)) {
             very_long_press_action();       /* Pressed for 5 seconds or more */
-        } else if (lwbtn_is_btn_pressed_for_range(btn, 2000, 4999)) {
+        } else if (lwbtn_is_btn_pressed_between(btn, 2000, 4999)) {
             long_press_action();            /* Pressed for 2 to 5 seconds */
         }
     }
@@ -357,7 +357,7 @@ After the **onrelease** callback returns, both functions return ``0``.
 Buttons pressed together
 ************************
 
-:c:func:`lwbtn_is_btn_pressed_for_range` can be used to detect ``2`` buttons pressed together (a button combination).
+:c:func:`lwbtn_is_btn_pressed_between` can be used to detect ``2`` buttons pressed together (a button combination).
 If both buttons have been pressed for a time between ``COMBO_HOLD_TIME`` and ``COMBO_HOLD_TIME + COMBO_TOLERANCE``,
 they are both held long enough, and they were pressed at most ``COMBO_TOLERANCE`` milliseconds apart, in any order:
 
@@ -372,8 +372,8 @@ they are both held long enough, and they were pressed at most ``COMBO_TOLERANCE`
     static void
     prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* btn, lwbtn_evt_t evt) {
         if (evt == LWBTN_EVT_KEEPALIVE
-            && lwbtn_is_btn_pressed_for_range(&btns[0], COMBO_HOLD_TIME, COMBO_HOLD_TIME + COMBO_TOLERANCE)
-            && lwbtn_is_btn_pressed_for_range(&btns[1], COMBO_HOLD_TIME, COMBO_HOLD_TIME + COMBO_TOLERANCE)) {
+            && lwbtn_is_btn_pressed_between(&btns[0], COMBO_HOLD_TIME, COMBO_HOLD_TIME + COMBO_TOLERANCE)
+            && lwbtn_is_btn_pressed_between(&btns[1], COMBO_HOLD_TIME, COMBO_HOLD_TIME + COMBO_TOLERANCE)) {
             combo_action();
 
             /* Reset both buttons -> combination is executed once, no further events until buttons are pressed again */
@@ -391,7 +391,7 @@ How it works:
 * Resetting both buttons executes the combination only once, and prevents their own **onrelease**, **onclick** and further keep-alive events,
   so the application does not execute single-button actions after the combination
 
-To only check that both buttons are held, regardless of when each one was pressed, use :c:func:`lwbtn_is_btn_pressed_for` instead of the range checks.
+To only check that both buttons are held, regardless of when each one was pressed, use :c:func:`lwbtn_is_btn_pressed_at_least` instead of the range checks.
 
 .. note::
     Combination is detected only if the check runs while both pressed times are within the range.

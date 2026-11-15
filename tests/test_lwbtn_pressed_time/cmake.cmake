@@ -2,7 +2,7 @@
 
 # Add more sources
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/test_lwbtn_pressed_for.c
+    ${CMAKE_CURRENT_LIST_DIR}/test_lwbtn_pressed_time.c
 )
 
 # Options file

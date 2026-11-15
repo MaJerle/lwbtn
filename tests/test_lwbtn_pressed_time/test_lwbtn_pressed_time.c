@@ -16,17 +16,17 @@ static struct {
 
     /* Results captured from within the keep-alive callback */
     uint16_t keepalive_cnt;
-    uint16_t keepalive_pressed_for_ok; /* Number of keep-alives where "pressed for" matched expectation */
+    uint16_t keepalive_pressed_at_least_ok; /* Number of keep-alives where "pressed at least" matched expectation */
 
     /* Results captured from within the on-press callback */
-    uint8_t onpress_pressed_for_0;
-    uint8_t onpress_pressed_for_1;
+    uint8_t onpress_pressed_at_least_0;
+    uint8_t onpress_pressed_at_least_1;
 
     /* Results captured from within the on-release callback */
     uint8_t onrelease_cnt;
     uint8_t onrelease_active;
-    uint8_t onrelease_pressed_for_2001;
-    uint8_t onrelease_pressed_for_2002;
+    uint8_t onrelease_pressed_at_least_2001;
+    uint8_t onrelease_pressed_at_least_2002;
     uint8_t onrelease_range_2000_2001;
     uint8_t onrelease_range_0_2000;
     uint16_t onrelease_keepalive_cnt;
@@ -36,16 +36,16 @@ static struct {
 static void
 prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* b, lwbtn_evt_t evt) {
     if (evt == LWBTN_EVT_ONPRESS) {
-        context.onpress_pressed_for_0 = lwbtn_is_btn_pressed_for(b, 0);
-        context.onpress_pressed_for_1 = lwbtn_is_btn_pressed_for(b, 1);
+        context.onpress_pressed_at_least_0 = lwbtn_is_btn_pressed_at_least(b, 0);
+        context.onpress_pressed_at_least_1 = lwbtn_is_btn_pressed_at_least(b, 1);
     }
     if (evt == LWBTN_EVT_ONRELEASE) {
         ++context.onrelease_cnt;
         context.onrelease_active = lwbtn_is_btn_active(b);
-        context.onrelease_pressed_for_2001 = lwbtn_is_btn_pressed_for(b, 2001);
-        context.onrelease_pressed_for_2002 = lwbtn_is_btn_pressed_for(b, 2002);
-        context.onrelease_range_2000_2001 = lwbtn_is_btn_pressed_for_range(b, 2000, 2001);
-        context.onrelease_range_0_2000 = lwbtn_is_btn_pressed_for_range(b, 0, 2000);
+        context.onrelease_pressed_at_least_2001 = lwbtn_is_btn_pressed_at_least(b, 2001);
+        context.onrelease_pressed_at_least_2002 = lwbtn_is_btn_pressed_at_least(b, 2002);
+        context.onrelease_range_2000_2001 = lwbtn_is_btn_pressed_between(b, 2000, 2001);
+        context.onrelease_range_0_2000 = lwbtn_is_btn_pressed_between(b, 0, 2000);
 #if LWBTN_CFG_USE_KEEPALIVE
         context.onrelease_keepalive_cnt = lwbtn_keepalive_get_count(b);
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
@@ -58,8 +58,8 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* b, lwbtn_evt_t evt) {
     if (evt == LWBTN_EVT_KEEPALIVE) {
         /* At N-th keep-alive, button has been pressed for at least N periods, but not N periods + 1 ms */
         lwbtn_time_t t = (lwbtn_time_t)(++context.keepalive_cnt) * LWBTN_CFG_TIME_KEEPALIVE_PERIOD;
-        if (lwbtn_is_btn_pressed_for(b, t) && !lwbtn_is_btn_pressed_for(b, t + 1)) {
-            ++context.keepalive_pressed_for_ok;
+        if (lwbtn_is_btn_pressed_at_least(b, t) && !lwbtn_is_btn_pressed_at_least(b, t + 1)) {
+            ++context.keepalive_pressed_at_least_ok;
         }
     }
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
@@ -68,7 +68,7 @@ prv_btn_event(struct lwbtn* lw, struct lwbtn_btn* b, lwbtn_evt_t evt) {
 /**
  * \brief           Test function
  *
- * Tests for `lwbtn_is_btn_pressed_for()`:
+ * Tests for `lwbtn_is_btn_pressed_at_least()`:
  *
  * - Returns `0` for NULL button and when button is not active
  * - Pressed time is measured from on-press until the last process call
@@ -89,8 +89,8 @@ test_run(void) {
     lwbtn_process(mstime++);
 
     /* NULL and inactive button */
-    TEST_ASSERT(!lwbtn_is_btn_pressed_for(NULL, 0));
-    TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
+    TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(NULL, 0));
+    TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 0));
 
     {
         /* Press -> on-press fires immediately, pressed time is 0 */
@@ -99,16 +99,16 @@ test_run(void) {
         lwbtn_process(mstime);
 
         printf("In on-press: pressed for 0: %u (expected 1), pressed for 1: %u (expected 0)\r\n",
-               (unsigned)context.onpress_pressed_for_0, (unsigned)context.onpress_pressed_for_1);
-        TEST_ASSERT(context.onpress_pressed_for_0 && !context.onpress_pressed_for_1);
-        TEST_ASSERT(lwbtn_is_btn_pressed_for(&context.btn, 0));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 1));
+               (unsigned)context.onpress_pressed_at_least_0, (unsigned)context.onpress_pressed_at_least_1);
+        TEST_ASSERT(context.onpress_pressed_at_least_0 && !context.onpress_pressed_at_least_1);
+        TEST_ASSERT(lwbtn_is_btn_pressed_at_least(&context.btn, 0));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 1));
 
         /* Hold, processing every ms. Value must follow the last process time */
         for (mstime = press_time + 1; mstime <= press_time + 2000; ++mstime) {
             lwbtn_process(mstime);
             lwbtn_time_t held = (lwbtn_time_t)(mstime - press_time);
-            if (!lwbtn_is_btn_pressed_for(&context.btn, held) || lwbtn_is_btn_pressed_for(&context.btn, held + 1)) {
+            if (!lwbtn_is_btn_pressed_at_least(&context.btn, held) || lwbtn_is_btn_pressed_at_least(&context.btn, held + 1)) {
                 printf("Pressed time mismatch at %u ms of holding\r\n", (unsigned)held);
                 TEST_ASSERT(0);
                 break;
@@ -116,24 +116,24 @@ test_run(void) {
         }
 
         /* Value does not move without process call */
-        TEST_ASSERT(lwbtn_is_btn_pressed_for(&context.btn, 2000));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 2001));
+        TEST_ASSERT(lwbtn_is_btn_pressed_at_least(&context.btn, 2000));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 2001));
 
 #if LWBTN_CFG_USE_KEEPALIVE
         printf("Keep-alive events: %u, with correct pressed time: %u\r\n", (unsigned)context.keepalive_cnt,
-               (unsigned)context.keepalive_pressed_for_ok);
-        TEST_ASSERT(context.keepalive_cnt > 0 && context.keepalive_cnt == context.keepalive_pressed_for_ok);
+               (unsigned)context.keepalive_pressed_at_least_ok);
+        TEST_ASSERT(context.keepalive_cnt > 0 && context.keepalive_cnt == context.keepalive_pressed_at_least_ok);
 #endif /* LWBTN_CFG_USE_KEEPALIVE */
 
         /* Release after 2001 ms of pressing -> pressed time is still available in on-release callback */
         lwbtn_set_btn_state(&context.btn, 0);
         lwbtn_process(mstime++);
         printf("In on-release: active: %u (expected 0), pressed for 2001: %u (expected 1), 2002: %u (expected 0)\r\n",
-               (unsigned)context.onrelease_active, (unsigned)context.onrelease_pressed_for_2001,
-               (unsigned)context.onrelease_pressed_for_2002);
+               (unsigned)context.onrelease_active, (unsigned)context.onrelease_pressed_at_least_2001,
+               (unsigned)context.onrelease_pressed_at_least_2002);
         TEST_ASSERT(context.onrelease_cnt == 1);
         TEST_ASSERT(!context.onrelease_active);
-        TEST_ASSERT(context.onrelease_pressed_for_2001 && !context.onrelease_pressed_for_2002);
+        TEST_ASSERT(context.onrelease_pressed_at_least_2001 && !context.onrelease_pressed_at_least_2002);
         TEST_ASSERT(context.onrelease_range_2000_2001 && !context.onrelease_range_0_2000);
 #if LWBTN_CFG_USE_KEEPALIVE
         printf("In on-release: keep-alive count: %u (expected %u)\r\n", (unsigned)context.onrelease_keepalive_cnt,
@@ -144,8 +144,8 @@ test_run(void) {
 
         /* After on-release callback -> no longer pressed */
         printf("After release, pressed for 0: %u (expected 0)\r\n",
-               (unsigned)lwbtn_is_btn_pressed_for(&context.btn, 0));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
+               (unsigned)lwbtn_is_btn_pressed_at_least(&context.btn, 0));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 0));
     }
 
     {
@@ -156,30 +156,30 @@ test_run(void) {
         lwbtn_process(mstime);
         mstime += 300;
         lwbtn_process(mstime);
-        TEST_ASSERT(lwbtn_is_btn_pressed_for(&context.btn, 300));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 301));
+        TEST_ASSERT(lwbtn_is_btn_pressed_at_least(&context.btn, 300));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 301));
 
         /* Range check, pressed time is 300 ms - both bounds are inclusive */
-        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 300, 300));
-        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 0, 300));
-        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 300, 1000));
-        TEST_ASSERT(lwbtn_is_btn_pressed_for_range(&context.btn, 200, 400));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(&context.btn, 301, 1000)); /* Below min */
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(&context.btn, 0, 299));    /* Above max */
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(&context.btn, 400, 200));  /* min > max */
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for_range(NULL, 0, (lwbtn_time_t)-1));
+        TEST_ASSERT(lwbtn_is_btn_pressed_between(&context.btn, 300, 300));
+        TEST_ASSERT(lwbtn_is_btn_pressed_between(&context.btn, 0, 300));
+        TEST_ASSERT(lwbtn_is_btn_pressed_between(&context.btn, 300, 1000));
+        TEST_ASSERT(lwbtn_is_btn_pressed_between(&context.btn, 200, 400));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_between(&context.btn, 301, 1000)); /* Below min */
+        TEST_ASSERT(!lwbtn_is_btn_pressed_between(&context.btn, 0, 299));    /* Above max */
+        TEST_ASSERT(!lwbtn_is_btn_pressed_between(&context.btn, 400, 200));  /* min > max */
+        TEST_ASSERT(!lwbtn_is_btn_pressed_between(NULL, 0, (lwbtn_time_t)-1));
         printf("Range [200, 400] at 300 ms: %u (expected 1), range [0, 299]: %u (expected 0)\r\n",
-               (unsigned)lwbtn_is_btn_pressed_for_range(&context.btn, 200, 400),
-               (unsigned)lwbtn_is_btn_pressed_for_range(&context.btn, 0, 299));
+               (unsigned)lwbtn_is_btn_pressed_between(&context.btn, 200, 400),
+               (unsigned)lwbtn_is_btn_pressed_between(&context.btn, 0, 299));
 
         /* Reset while held -> no longer pressed, even after further processing */
         lwbtn_reset(NULL, &context.btn);
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 0));
         mstime += 1000;
         lwbtn_process(mstime);
         printf("After reset while held, pressed for 0: %u (expected 0)\r\n",
-               (unsigned)lwbtn_is_btn_pressed_for(&context.btn, 0));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
+               (unsigned)lwbtn_is_btn_pressed_at_least(&context.btn, 0));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 0));
     }
 
     {
@@ -195,10 +195,10 @@ test_run(void) {
         context.reset_in_onrelease = 1;
         lwbtn_set_btn_state(&context.btn, 0);
         lwbtn_process(mstime);
-        TEST_ASSERT(context.onrelease_cnt == 1 && context.onrelease_pressed_for_2001);
+        TEST_ASSERT(context.onrelease_cnt == 1 && context.onrelease_pressed_at_least_2001);
         printf("After reset in on-release, pressed for 0: %u (expected 0)\r\n",
-               (unsigned)lwbtn_is_btn_pressed_for(&context.btn, 0));
-        TEST_ASSERT(!lwbtn_is_btn_pressed_for(&context.btn, 0));
+               (unsigned)lwbtn_is_btn_pressed_at_least(&context.btn, 0));
+        TEST_ASSERT(!lwbtn_is_btn_pressed_at_least(&context.btn, 0));
     }
 
     return rescode;
