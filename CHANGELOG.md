@@ -2,6 +2,8 @@
 
 ## Develop
 
+## v1.4.0
+
 - `lwbtn_reset`: when `btn` is non-NULL, reset only that button; otherwise reset all buttons of `lwobj` (default instance when `NULL`)
 - Stop processing the button when `lwbtn_reset` is called from within any event callback. No further events (keep-alive, on-press, delayed on-click) are sent for that button until a new valid press
 - `lwbtn_reset` also clears the keep-alive counter
@@ -22,7 +24,7 @@
 ## v1.3.0
 
 - Implement getters and setters for the dynamic features
-- Implement the consistent use of `lwbtn_time_t` for all time functions and interfaces 
+- Implement the consistent use of `lwbtn_time_t` for all time functions and interfaces
 
 ## v1.2.1
 
@@ -31,9 +33,9 @@
 ## v1.2.0
 
 - Add detection of the first button state to be inactive before debouncing can even start
-- Add macro `LWBTN_CFG_USE_CLICK` with default value to keep click event enabled (backward compatibility) and an option to disable *click* events
+- Add macro `LWBTN_CFG_USE_CLICK` with default value to keep click event enabled (backward compatibility) and an option to disable _click_ events
 - Rework library CMake with removed INTERFACE type
-- Add `LWBTN_CFG_TYPE_VARTYPE` config type to allow user to select *time* variable type (typically `uint32_t` or `uint16_t`)
+- Add `LWBTN_CFG_TYPE_VARTYPE` config type to allow user to select _time_ variable type (typically `uint32_t` or `uint16_t`)
 - Add `lwbtn_reset` to manually reset the button state
 - Fix the platformio library package description
 
@@ -44,7 +46,7 @@
 - Add `lwbtn_click_get_count` function to get consecutive clicks
 - Add `lwbtn_keepalive_get_count_for_time` function to calculate number of required keep alive tick
 - Improve configuration documentation text
-- Add `LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS` option to report previous clicks, even if last sequence of *onpress* and *onrelease* is too short for valid click event.
+- Add `LWBTN_CFG_CLICK_CONSECUTIVE_KEEP_AFTER_SHORT_PRESS` option to report previous clicks, even if last sequence of _onpress_ and _onrelease_ is too short for valid click event.
 
 ## v1.0.0
 
@@ -53,10 +55,10 @@
 
 ## v0.0.2
 
-- Add `LWBTN_CFG_GET_STATE_MODE` to control *get state* mode
-- Add option to check if button is currently active (after debounce period has elapsed) 
+- Add `LWBTN_CFG_GET_STATE_MODE` to control _get state_ mode
+- Add option to check if button is currently active (after debounce period has elapsed)
 - Add option to set time/click parameters at run time for each button specifically
-- Rename `_RUNTIME` configuration with `_DYNAMIC` 
+- Rename `_RUNTIME` configuration with `_DYNAMIC`
 - Change `LWBTC_CFG_TIME_DEBOUNCE` to `LWBTC_CFG_TIME_DEBOUNCE_PRESS` and `LWBTC_CFG_TIME_DEBOUNCE_RUNTIME` to `LWBTC_CFG_TIME_DEBOUNCE_PRESS_DYNAMIC` respectively
 - Add option release debounce with `LWBTC_CFG_TIME_DEBOUNCE_RELEASE` and `LWBTC_CFG_TIME_DEBOUNCE_RELEASE_DYNAMIC` options
 

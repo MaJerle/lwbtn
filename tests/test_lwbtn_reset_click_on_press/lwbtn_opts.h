@@ -29,17 +29,17 @@
  * This file is part of LwBTN - Lightweight button manager.
  *
  * Author:          Tilen MAJERLE <tilen@majerle.eu>
- * Version:         v1.3.2
+ * Version:         v1.4.0
  */
 #ifndef LWBTN_HDR_OPTS_H
 #define LWBTN_HDR_OPTS_H
 
 /* Disable debounce completely, to keep event timing simple and deterministic */
-#define LWBTN_CFG_TIME_DEBOUNCE_PRESS   0
-#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE 0
+#define LWBTN_CFG_TIME_DEBOUNCE_PRESS                    0
+#define LWBTN_CFG_TIME_DEBOUNCE_RELEASE                  0
 
 /* Drive input state manually from the test, instead of through a get-state callback */
-#define LWBTN_CFG_GET_STATE_MODE        LWBTN_GET_STATE_MODE_MANUAL
+#define LWBTN_CFG_GET_STATE_MODE                         LWBTN_GET_STATE_MODE_MANUAL
 
 /* Report max-consecutive click just before the next on-press, instead of immediately after release */
 #define LWBTN_CFG_CLICK_MAX_CONSECUTIVE_SEND_IMMEDIATELY 0
