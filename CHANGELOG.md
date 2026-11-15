@@ -5,8 +5,8 @@
 - `lwbtn_reset`: when `btn` is non-NULL, reset only that button; otherwise reset all buttons of `lwobj` (default instance when `NULL`)
 - Stop processing the button when `lwbtn_reset` is called from within any event callback. No further events (keep-alive, on-press, delayed on-click) are sent for that button until a new valid press
 - `lwbtn_reset` also clears the keep-alive counter
-- Add `lwbtn_is_btn_pressed_for` to check if button has been continuously pressed for at least the given time
-- Add `lwbtn_is_btn_pressed_for_range` to check if button has been continuously pressed for a time within the `[min, max]` range
+- Add `lwbtn_is_btn_pressed_at_least` to check if button has been continuously pressed for at least the given time
+- Add `lwbtn_is_btn_pressed_between` to check if button has been continuously pressed for a time within the `[min, max]` range
 - Pressed time functions remain valid within the on-release callback, to check how long the button was pressed before release
 - Set on-press time and keep-alive state before the on-press event is sent, so they are valid within the on-press callback
 
